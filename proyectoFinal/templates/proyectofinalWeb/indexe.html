@@ -1,0 +1,159 @@
+{% extends  "proyectofinalWeb/_privado/base.html" %}
+
+{% load static %}
+
+{% block title %} Inicio {% endblock %}
+
+{#{% block estilos %}#}
+{#<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">#}
+{#<link rel="stylesheet" href="{% static 'css/style.css' %}">#}
+{#{% endblock %}#}
+
+{% block contenido %}
+    <!-- Sección Principal -->
+    <div class="d-flex align-items-center justify-content-between p-4 bg-light">
+        <div class="mw-50">
+            <h1>Tu próximo reto empieza aquí</h1>
+            <p>
+                Descubre los mejores componentes de ciclismo, accede a rutas emocionantes y
+                calcula la dureza de tus próximas aventuras. Todo en un solo lugar.
+            </p>
+            <a class="btn btn-success" href="#" data-bs-toggle="modal" data-bs-target="#modalAccede">Regístrate o inicia
+                sesión</a>
+        </div>
+        <div class="main-image">
+            <img src="https://www.komoot.com/images/home/hero-signup-square-v002.jpg?width=700&height=460&crop=true&q=40"
+                 alt="Ciclismo en la naturaleza">
+        </div>
+    </div>
+
+    <!--Ventana Modal Accede-->
+    <div class="modal fade" id="modalAccede" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button class="btn btn-primary container-fluid" type="button">Inicia Sesion con Facebook</button>
+                </div>
+                <div class="modal-body">
+                    <p>o bien.</p>
+                    <form method="post" action="{% url 'registroAcceso' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="inputUserName">Nombre de usuario</label>
+                            <input type="text" class="form-control" id="inputUserName" name="username"
+                                   placeholder="Escribe tu nombre de usuario..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputPassword">Contraseña</label>
+                            <input type="password" class="form-control" name="password" id="inputPassword"
+                                   placeholder="Escribe tu contraseña..." required>
+                        </div>
+                        <button type="submit" class="btn btn-success container-fluid mt-3" name="enviar" value="ini">
+                            Iniciar sesion
+                        </button>
+                        <p><a  class="btn btn-secondary" href="#" data-bs-toggle="modal"
+                       data-bs-target="#modalOlvidoPassw"> ¿Has olvidado la contraseña?</a></p>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-secondary" href="#" data-bs-toggle="modal"
+                       data-bs-target="#modalRegistrar">Regístrate</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalRegistrar" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="text-center w-100 mb-0">REGISTRATE</p>
+                </div>
+                <div class="modal-body">
+                    {% if error %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+                    <form class="needs-validation" action="{% url 'registroAcceso' %}" novalidate method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="InpRegUsername" placeholder="Nombre de usuario"
+                                   name="usuario" required/>
+                            <div class="invalid-feedback">
+                                Introduce un nombre nombre de usuario
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="InpRegNombre" placeholder="Nombre" name="nombre"
+                                   required/>
+                            <div class="invalid-feedback">
+                                Introduce un nombre
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="InpRegApellidos" placeholder="Apellidos"
+                                   name="apellidos" required/>
+                            <div class="invalid-feedback">
+                                Introduce los apellidos
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="InpRegEmail" placeholder="Correo electrónico"
+                                   name="email"
+                                   required/>
+                            <div class="invalid-feedback">
+                                El correo ya existe
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" id="InpRegPassword" placeholder="Contraseña"
+                                   name="password"
+                                   required/>
+                            <div class="invalid-feedback">La contraseña debe de cumplir con los requisitos</div>
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" class="form-control" id="InpRegPasswordDup"
+                                   placeholder="Introduce de nuevo la contraseña" name="reppassword" required/>
+                            <div class="invalid-feedback">Las contraseñas no son iguales</div>
+                        </div>
+                        <div class="mb-3">
+                            <button class="btn btn-success container-fluid mt-3" name="enviar" value="reg"
+                                    type="submit">Registrate
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modalOlvidoPassw" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="text-center w-100 mb-0">¿Has olvidado la contraseña?</p>
+                </div>
+                <div class="modal-body">
+                    {% if error %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+                    <form class="needs-validation" action="{% url 'registroAcceso' %}" novalidate method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="InpRegEmail" placeholder="Correo electrónico"
+                                   name="emailRec"
+                                   required/>
+                        </div>
+                        <div class="mb-3">
+                            <button class="btn btn-success container-fluid mt-3" name="enviar" value="recPass"
+                                    type="submit">Enviar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
