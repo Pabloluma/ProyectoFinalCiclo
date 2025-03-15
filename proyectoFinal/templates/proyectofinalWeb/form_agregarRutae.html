@@ -59,7 +59,8 @@
                 <div class="card shadow">
                     <div class="card-body">
                         <h3 class="card-title text-center mb-4">Agrega una nueva Ruta Manualmente</h3>
-                        <form action="#" method="post">
+                        <form action="{% url 'nuevaRuta' %}" method="post">
+                            {% csrf_token %}
                             <div class="mb-3">
                                 <label>Titulo</label>
                                 <input type="text" name="titulo" class="form-control" placeholder="Titulo" required>
