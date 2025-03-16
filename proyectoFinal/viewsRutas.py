@@ -21,9 +21,9 @@ def analizar_gpx(fichero_gpx):
     titulo = None
     fecha = None
     UMBRAL_MOVIMIENTO = 1.0
-    gpx = fichero_gpx.read().decode('utf-8')
-    gpx = gpxpy.parse(gpx)
-
+    # gpx = fichero_gpx.read().decode('utf-8')
+    # gpx = gpxpy.parse(gpx)
+    gpx = gpxpy.parse(fichero_gpx)
     distancia_total = 0.0  # En km
     tiempo_total = timedelta(seconds=0)
     tiempo_movimiento = timedelta(seconds=0)
@@ -35,10 +35,14 @@ def analizar_gpx(fichero_gpx):
     altitud_min = float('inf')
     ganancia_altitud = 0.0  # En metros
     perdida_altitud = 0.0  # En metros
-    if gpx.name is not None or gpx.time is not None:
+    if gpx.name is not None and gpx.time is not None:
         titulo = gpx.name
         fecha = gpx.time.date()
-    else:
+
+    if gpx.time is not None:
+        fecha = gpx.time.date()
+
+    if gpx.name is None:
         for track in gpx.tracks:
             titulo = track.name
             for segment in track.segments:
@@ -100,12 +104,8 @@ def analizar_gpx(fichero_gpx):
     }
 
 
-def generarMapaGPX(archivo_gpx):
-    # with open(archivo_gpx, 'r') as gpx_file:
-    #     gpx = gpxpy.parse(gpx_file)
-
-    gpx = archivo_gpx.read().decode('utf-8')
-    gpx = gpxpy.parse(gpx)
+def generarMapaGPX(fichero_gpx):
+    gpx = gpxpy.parse(fichero_gpx)
 
     # Extraer los puntos de la ruta
     ruta = []
@@ -200,35 +200,44 @@ def formularioNuevaRuta(request):
 
                 # Obtiene el valor del fichero seleccionado
                 fichero = request.FILES['ficheroGpxCsv']
+                fichero_leido = fichero.read().decode('utf-8')
 
-                _, extension = os.path.splitext(fichero.name)  # Usar os.path.splitext para un mejor manejo de la extension
+                _, extension = os.path.splitext(fichero.name)
                 extension = extension[1:].lower()
                 if extension == 'gpx':
-                # if fichero.split('.')[1] == 'gpx':
-                    resultados = analizar_gpx(fichero)
-                    mapa = generarMapaGPX(fichero)
+                    resultados = analizar_gpx(fichero_leido)
+                    try:
+                        mapa = generarMapaGPX(fichero_leido)
+                    except:
+                        print("No se ha podido generar mapa")
+                        mapa = None
 
                     ascenso_gpx = resultados.get("alt_acum_max")
                     descenso_gpx = resultados.get("alt_acum_min")
                     longitud_gpx = resultados.get("total_km")
                     # El suelo hay que cogerlo de la tabla caracteristicas usuario
-                    suelo_gpx = None
-                # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
-                    tipo_bici_gpx = None
-                # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
-                    estado_gpx = None
+                    suelo_gpx = '1'
+                    # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+                    tipo_bici_gpx = '1'
+                    # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+                    estado_gpx = '1'
+                    pred = prediccionNuevaRuta(desnivel_positivo=ascenso_gpx, desnivel_negativo=descenso_gpx,
+                                                   longitud=longitud_gpx, suelo=suelo_gpx, tipo_bici=tipo_bici_gpx,
+                                                   estado=estado_gpx)
 
                     ruta_GPX = Rutas(
                         titulo=resultados.get("titulo"),
-                        fecha=resultados.get("fecha"),
-                        tiempo=resultados.get("tiempo_movimiento"),
+                        fecha=str(resultados.get("fecha")),
+                        tiempo=str(resultados.get("tiempo_movimiento")),
                         distancia=resultados.get("total_km"),
                         velocidad=resultados.get("vel_media_movimiento"),
                         ascenso=resultados.get("alt_acum_max"),
                         descenso=resultados.get("alt_acum_min"),
-                        dureza=prediccionNuevaRuta(ascenso_gpx, descenso_gpx, longitud_gpx ),
+                        dureza= pred,
                         idUsuario=request.user
                     )
+                    ruta_GPX.save()
+                    return redirect('misRutas')
 
                 elif fichero.split('.')[1] == 'csv':
 

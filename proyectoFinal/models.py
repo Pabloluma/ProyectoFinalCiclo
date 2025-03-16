@@ -21,3 +21,13 @@ class Rutas(models.Model):
 
     def __str__(self):
         return f"{self.titulo} - {self.idUsuario.first_name}"
+
+
+class caracteristicas(models.Model):
+    edad = models.PositiveIntegerField()
+    estatura = models.DecimalField(max_digits=3, decimal_places=2)
+    peso = models.DecimalField(max_digits=5, decimal_places=2)
+    estado = models.PositiveSmallIntegerField()
+    suelo = models.PositiveSmallIntegerField()
+    tipo_bici = models.PositiveSmallIntegerField()
+    usuario_id = models.OneToOneField(User, on_delete=models.CASCADE)
