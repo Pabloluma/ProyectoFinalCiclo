@@ -13,7 +13,7 @@ def calcular(request):
     if request.method == 'GET':
         return render(request, 'proyectofinalWeb/calcular_dureza.html')
     if request.method == 'POST':
-        ruta_modelo = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static', 'media', 'RN_TFG_v3.h5')
+        ruta_modelo = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static', 'ficheros', 'RN_TFG_v3.h5')
         modelo = load_model(ruta_modelo)
         desnivel_positivo = int(request.POST.get('desnivel_positivo'))
 
@@ -26,7 +26,8 @@ def calcular(request):
 
         X_new = np.array([[desnivel_positivo, desnivel_negativo, longitud, suelo, tipo_bici, estado]])
 
-        df = pd.read_csv(os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\media\TrainData_SinIndex.csv'))
+        df = pd.read_csv(os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\TrainData_SinIndex.csv'))
+        # df = pd.read_csv(os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static', 'ficheros', 'TrainData_SinIndex.csv'))
         X = df.drop(['dificultad'], axis=1).values
         X_scaler = MinMaxScaler()
         X_scaler.fit(X)
@@ -40,7 +41,7 @@ def calcular(request):
         print("y_pred", y_pred)
         print("pred_clase", pred_clase)
 
-        rutaDiccionario = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\media\diccionarios.json')
+        rutaDiccionario = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\diccionarios.json')
 
         with open(rutaDiccionario, 'r') as f:
             diccionarios_cargados = json.load(f)

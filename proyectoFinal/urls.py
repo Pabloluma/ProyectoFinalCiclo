@@ -15,12 +15,6 @@ urlpatterns = [
     path('durezaRuta/', viewsCalculaDureza.calcular, name='calcularDureza'),
     path('durezaRuta/', viewsCalculaDureza.calcular, name='calcularDureza'),
 
-
-
-
-
-
-
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
 
     # Vista para la confirmación de la solicitud de restablecimiento
@@ -31,7 +25,4 @@ urlpatterns = [
 
     # Vista para la confirmación después de restablecer la contraseña
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-
-
-
 ]

@@ -48,11 +48,12 @@
                 {% for ruta in rutas %}
                     <div class="card shadow-lg border rounded-4 mb-4">
                         <div class="row g-0">
-                            <div class="col-md-4">
-                                <iframe src="{% static '/img/mapa_ruta.html' %}"
-                                        class="w-100 h-100 rounded-start"
-                                        style="border: none; border-radius: 15px 0 0 15px;"
-                                        title="Mapa de la ruta"></iframe>
+                            <div class="col-md-4 col-7 mx-auto">
+                                <img src="/media/proyectoFinal/proyectoFinal/i_mapa_ruta_10.png" alt="imagen" class="w-100 h-100 rounded-start" style="border: none; border-radius: 15px 0 0 15px;">
+{#                                <iframe src="{% static '/img/mapa_ruta.html' %}"#}
+{#                                        class="w-100 h-100 rounded-start"#}
+{#                                        style="border: none; border-radius: 15px 0 0 15px;"#}
+{#                                        title="Mapa de la ruta"></iframe>#}
                             </div>
                             <div class="col-md-8">
                                 <div class="card-body">
@@ -94,7 +95,7 @@
                                         </div>
                                         <div class="me-md-0 me-5">
                                             <span class="text-muted">Dureza</span> <strong
-                                                class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'media' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
+                                                class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'ficheros' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
                                         </div>
                                     </div>
                                 </div>
@@ -140,7 +141,7 @@
                 {#                                </div>#}
                 {#                                <div class="me-md-0 me-5">#}
                 {#                                    <span class="text-muted">Dureza</span> <strong#}
-                {#                                        class="border rounded border-danger px-3 py-0 text-danger">media</strong>#}
+                {#                                        class="border rounded border-danger px-3 py-0 text-danger">ficheros</strong>#}
                 {#                                </div>#}
                 {#                            </div>#}
                 {#                        </div>#}

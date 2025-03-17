@@ -1,3 +1,4 @@
+import io
 import json
 import os
 
@@ -5,12 +6,18 @@ import gpxpy
 import gpxpy.gpx
 import folium
 from django.conf import settings
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from geopy.distance import geodesic
 from datetime import timedelta
 from keras.src.saving import load_model
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+
+import geopandas as gpd
+from shapely.geometry import LineString
+import matplotlib.pyplot as plt
+import contextily as ctx
 
 from django.shortcuts import render, redirect
 
@@ -84,7 +91,7 @@ def analizar_gpx(fichero_gpx):
                         else:
                             perdida_altitud += abs(diferencia_altitud)
 
-    # Calcular velocidad media en movimiento (km/h)
+    # Calcular velocidad ficheros en movimiento (km/h)
     velocidad_media = (distancia_total / (
             tiempo_movimiento.total_seconds() / 3600)) if tiempo_movimiento.total_seconds() > 0 else 0
 
@@ -104,7 +111,49 @@ def analizar_gpx(fichero_gpx):
     }
 
 
-def generarMapaGPX(fichero_gpx):
+def generarImagenMapaGPX(fichero_gpx, rutaGuardada):
+    gpx = gpxpy.parse(fichero_gpx)
+    coords = []
+    for track in gpx.tracks:
+        for segment in track.segments:
+            for point in segment.points:
+                coords.append((point.longitude, point.latitude))
+
+    # Convertir a GeoDataFrame
+    line = LineString(coords)
+    gdf = gpd.GeoDataFrame(geometry=[line], crs="EPSG:4326")
+    gdf = gdf.to_crs(epsg=3857)  # Web Mercator para contextily
+
+    '''# Plot
+    ax = gdf.plot(figsize=(10, 8), linewidth=3, color='blue')
+    ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
+    plt.savefig("ImagenRutaCordoba.png", dpi=300)
+    plt.show()'''
+
+    # Crear imagen en memoria
+    fig, ax = plt.subplots(figsize=(4, 4))
+    gdf.plot(ax=ax, linewidth=3, color='blue')
+    ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
+    ax.axis("off")
+    # fig, ax = plt.subplots(figsize=(10, 8))
+    # gdf.plot(ax=ax, linewidth=3, color='blue')
+    # ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
+    # ax.axis("off")
+
+    # Crear un buffer en memoria
+    img_buffer = io.BytesIO()
+
+    # Guardar la imagen en el buffer de memoria
+    plt.savefig(img_buffer, format='png', dpi=300, bbox_inches='tight')
+    plt.close(fig)
+
+    img_buffer.seek(0)
+    imagen_file = InMemoryUploadedFile(img_buffer, None, f"i_mapa_ruta_{rutaGuardada.id}.png", 'image/png',
+                                       img_buffer.tell(), None)
+    rutaGuardada.imagen.save(f"proyectoFinal/i_mapa_ruta_{rutaGuardada.id}.png", imagen_file, save=True)
+
+
+def generarMapaGPX_HTML(fichero_gpx):
     gpx = gpxpy.parse(fichero_gpx)
 
     # Extraer los puntos de la ruta
@@ -130,12 +179,12 @@ def generarMapaGPX(fichero_gpx):
 
 
 def prediccionNuevaRuta(desnivel_positivo, desnivel_negativo, longitud, suelo, tipo_bici, estado):
-    ruta_modelo = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static', 'media', 'RN_TFG_v3.h5')
+    ruta_modelo = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static', 'ficheros', 'RN_TFG_v3.h5')
     modelo = load_model(ruta_modelo)
 
     X_new = np.array([[desnivel_positivo, desnivel_negativo, longitud, suelo, tipo_bici, estado]])
 
-    df = pd.read_csv(os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\media\TrainData_SinIndex.csv'))
+    df = pd.read_csv(os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\TrainData_SinIndex.csv'))
     X = df.drop(['dificultad'], axis=1).values
     X_scaler = MinMaxScaler()
     X_scaler.fit(X)
@@ -149,7 +198,7 @@ def prediccionNuevaRuta(desnivel_positivo, desnivel_negativo, longitud, suelo, t
     print("y_pred", y_pred)
     print("pred_clase", pred_clase)
 
-    rutaDiccionario = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\media\diccionarios.json')
+    rutaDiccionario = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\diccionarios.json')
 
     with open(rutaDiccionario, 'r') as f:
         diccionarios_cargados = json.load(f)
@@ -186,7 +235,7 @@ def formularioNuevaRuta(request):
                 velocidad=velocidad,
                 ascenso=ascenso,
                 descenso=descenso,
-                dureza="media",
+                dureza="ficheros",
                 idUsuario=request.user
             )
             ruta.save()
@@ -206,12 +255,6 @@ def formularioNuevaRuta(request):
                 extension = extension[1:].lower()
                 if extension == 'gpx':
                     resultados = analizar_gpx(fichero_leido)
-                    try:
-                        mapa = generarMapaGPX(fichero_leido)
-                    except:
-                        print("No se ha podido generar mapa")
-                        mapa = None
-
                     ascenso_gpx = resultados.get("alt_acum_max")
                     descenso_gpx = resultados.get("alt_acum_min")
                     longitud_gpx = resultados.get("total_km")
@@ -222,8 +265,8 @@ def formularioNuevaRuta(request):
                     # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
                     estado_gpx = '1'
                     pred = prediccionNuevaRuta(desnivel_positivo=ascenso_gpx, desnivel_negativo=descenso_gpx,
-                                                   longitud=longitud_gpx, suelo=suelo_gpx, tipo_bici=tipo_bici_gpx,
-                                                   estado=estado_gpx)
+                                               longitud=longitud_gpx, suelo=suelo_gpx, tipo_bici=tipo_bici_gpx,
+                                               estado=estado_gpx)
 
                     ruta_GPX = Rutas(
                         titulo=resultados.get("titulo"),
@@ -233,10 +276,17 @@ def formularioNuevaRuta(request):
                         velocidad=resultados.get("vel_media_movimiento"),
                         ascenso=resultados.get("alt_acum_max"),
                         descenso=resultados.get("alt_acum_min"),
-                        dureza= pred,
+                        dureza=pred,
+                        # imagen=mapa,
                         idUsuario=request.user
                     )
                     ruta_GPX.save()
+                    rutaGuardada = Rutas.objects.get(id=ruta_GPX.id)
+                    try:
+                        generarImagenMapaGPX(fichero_leido, rutaGuardada)
+                    except:
+                        print("No se ha podido generar mapa")
+                        mapa = None
                     return redirect('misRutas')
 
                 elif fichero.split('.')[1] == 'csv':
