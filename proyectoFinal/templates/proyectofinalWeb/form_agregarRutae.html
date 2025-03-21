@@ -21,8 +21,9 @@
             </div>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                 <li><a class="dropdown-item" href="#">Perfil</a></li>
+                <li><a class="dropdown-item" href="{% url 'misRutas' %}">Mis Rutas</a></li>
                 {% if admin %}
-                <li><a class="dropdown-item" href="{% url 'administracion' %}">Configuración</a></li>
+                    <li><a class="dropdown-item" href="{% url 'administracion' %}">Configuración</a></li>
                 {% endif %}
 
                 <li>
@@ -49,10 +50,14 @@
                         <form action="{% url 'nuevaRuta' %}" method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="mb-3">
-                                <label for="ficheroGpxCsv">Selecciona un fichero GPX o CSV para cargar la ruta</label><br>
-                                <input type="file" class="w-100" name="ficheroGpxCsv" id="ficheroGpxCsv" accept=".gpx, .csv">
+                                <label for="ficheroGpxCsv">Selecciona un fichero GPX o CSV para cargar la
+                                    ruta</label><br>
+                                <input type="file" class="w-100" name="ficheroGpxCsv" id="ficheroGpxCsv"
+                                       accept=".gpx, .csv">
                             </div>
-                            <button type="submit" id="btnGuardar" name="btnGuardar" value="automatico" class="btn btn-primary w-100">Guardar</button>
+                            <button type="submit" id="btnGuardar" name="btnGuardar" value="automatico"
+                                    class="btn btn-primary w-100">Guardar
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -92,13 +97,24 @@
                                 <input type="number" name="descenso" class="form-control" placeholder="descenso"
                                        required>
                             </div>
-                            <img src="imagen.png" hidden>
-                            <button type="submit" id="btnGuardar" name="btnGuardar" value="manual" class="btn btn-primary w-100">Guardar</button>
+                            <div class="mb-3">
+                                <label>Visibilidad</label>
+                                <select name="visibilidad" required>
+                                    <option value="">Selecciona un tipo de visibilidad</option>
+                                    <option value="0">Privada</option>
+                                    <option value="1">Publico</option>
+                                </select>
+                            </div>
+                            {#                            <img src="imagen.png" hidden>#}
+                            <button type="submit" id="btnGuardar" name="btnGuardar" value="manual"
+                                    class="btn btn-primary w-100">Guardar
+                            </button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
+        <a href="{% url 'inicio' %}"> Mostrar Todas las rutas</a>
     </div>
 
 {% endblock %}

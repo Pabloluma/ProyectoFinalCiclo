@@ -25,7 +25,7 @@ def index(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
             esAdmin = request.user.is_staff
-            return redirect('misRutas')
+            return redirect('inicio')
         else:
             num_Usuarios = User.objects.all().count()
             num_Rutas = Rutas.objects.all().count()
@@ -63,7 +63,7 @@ def acceso(request):
                 usuariosAdmin = User.objects.filter(is_staff=True)
                 for usuario in usuariosAdmin:
                     print(usuario.username, usuario.email)
-                return redirect('misRutas')
+                return redirect('inicio')
     elif botonEnv == "recPass":
         emailRec = request.POST.get('emailRec')
         try:
@@ -91,28 +91,27 @@ def acceso(request):
         except User.DoesNotExist:
             messages.error(request, "No se encontró un usuario con ese correo electrónico.")
 
-    return render(request, "proyectofinalWeb/indexe.html")
+    return redirect('index')
 
-
-# def mis_rutas(request):
-#     if request.user.is_authenticated:
-#         if request.method == 'GET':
-#             # esAdmin = request.user.is_staff
-#             listaRutas = Rutas.objects.filter(idUsuario=request.user.id)
-#             # return render(request, 'rutase.html', {"rutas": listaRutas, "admin": esAdmin, "nombre":request.user.username})
-#             return render(request, 'proyectofinalWeb/rutase.html', {"rutas": listaRutas})
-#     else:
-#         return redirect('index')
-#
-#
-# def formularioNuevaRuta(request):
-#     if request.user.is_authenticated:
-#         return render(request, 'proyectofinalWeb/form_agregarRutae.html')
-#     else:
-#         return redirect('index')
-
-
+@login_required(login_url='index')
 def administracion(request):
-    usuario = get_user_model()
-    listaUsuarios = usuario.objects.all()
-    return render(request, 'proyectofinalWeb/administracion.html', {"usuarios": listaUsuarios})
+    if request.user.is_authenticated and request.user.is_staff:
+        usuario = get_user_model()
+        listaUsuarios = usuario.objects.all()
+        return render(request, 'proyectofinalWeb/administracion.html', {"usuarios": listaUsuarios})
+    else:
+        return redirect('index')
+
+
+def inicio(request):
+    if request.user.is_authenticated:
+        if request.method == 'GET':
+            listaRutas = Rutas.objects.filter(publico=True)
+            return render(request, 'proyectofinalWeb/inicioRutasTodos.html', {"rutas": listaRutas})
+    else:
+        return redirect('index')
+
+
+def accesoAnonimo(request):
+    if request.user.is_anonymous:
+        return render(request, 'proyectofinalWeb/vistaUsuarioAnonimo.html')

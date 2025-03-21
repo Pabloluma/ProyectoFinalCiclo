@@ -21,6 +21,7 @@
             </div>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                 <li><a class="dropdown-item" href="#">Perfil</a></li>
+                <li><a class="dropdown-item" href="{% url 'misRutas' %}">Mis Rutas</a></li>
                 {% if admin %}
                     <li><a class="dropdown-item" href="{% url 'administracion' %}">Configuración</a></li>
                 {% endif %}
@@ -41,7 +42,7 @@
 
 {% block contenido %}
     <div class="container py-5">
-        <p>El valor que se ha predicho es : {{ prediccion.0}}, que corresponde con la clase {{ prediccion.1}} </p>
+        <p>El valor que se ha predicho es : {{ prediccion.0 }}, que corresponde con la clase {{ prediccion.1 }} </p>
         <div class="container mt-5">
             <div class="row justify-content-center">
                 <div class="col-md-6">
@@ -52,8 +53,8 @@
                         <div class="card-body">
                             <!-- Aquí mostramos la predicción -->
                             <p class="lead text-center">
-                                El valor que se ha predicho es: <strong>{{ prediccion.0}}</strong>,
-                                que corresponde con la clase <strong>{{ prediccion.1}}</strong>.
+                                El valor que se ha predicho es: <strong>{{ prediccion.0 }}</strong>,
+                                que corresponde con la clase <strong>{{ prediccion.1 }}</strong>.
                             </p>
                         </div>
                     </div>

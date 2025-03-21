@@ -2,6 +2,7 @@ import json
 import os
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from keras.src.saving import load_model
 import pandas as pd
@@ -9,6 +10,7 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
 
+# @login_required(login_url='index')
 def calcular(request):
     if request.method == 'GET':
         return render(request, 'proyectofinalWeb/calcular_dureza.html')

@@ -227,6 +227,16 @@ def formularioNuevaRuta(request):
             velocidad = request.POST.get('velocidad')
             ascenso = request.POST.get('ascenso')
             descenso = request.POST.get('descenso')
+            visibilidad = request.POST.get('visibilidad')
+            # El suelo hay que cogerlo de la tabla caracteristicas usuario
+            suelo_usuario = '1'
+            # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+            tipo_bici_usuario = '1'
+            # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+            estado_usuario = '1'
+            pred_manual = prediccionNuevaRuta(desnivel_positivo=ascenso, desnivel_negativo=descenso,
+                                              longitud=distancia, suelo=suelo_usuario, tipo_bici=tipo_bici_usuario,
+                                              estado=estado_usuario)
             ruta = Rutas(
                 titulo=titulo,
                 fecha=fecha,
@@ -235,7 +245,8 @@ def formularioNuevaRuta(request):
                 velocidad=velocidad,
                 ascenso=ascenso,
                 descenso=descenso,
-                dureza="ficheros",
+                dureza=pred_manual,
+                publico=True if pred_manual == '1' else False,
                 idUsuario=request.user
             )
             ruta.save()

@@ -1,31 +1,14 @@
-{% extends  "proyectofinalWeb/_privado/base.html" %}
+{% extends  "proyectofinalWeb/_privado/anonimo.html" %}
 
 {% load static %}
 
 {% block title %} Inicio {% endblock %}
 
-{#{% block estilos %}#}
-{#<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">#}
-{#<link rel="stylesheet" href="{% static 'css/style.css' %}">#}
-{#{% endblock %}#}
-
-{% block contenido %}
-    <!-- Sección Principal -->
-    <div class="d-flex align-items-center justify-content-between p-4 bg-light">
-        <div class="mw-50">
-            <h1>Tu próximo reto empieza aquí</h1>
-            <p>
-                Descubre los mejores componentes de ciclismo, accede a rutas emocionantes y
-                calcula la dureza de tus próximas aventuras. Todo en un solo lugar.
-            </p>
-            <a class="btn btn-success" href="#" data-bs-toggle="modal" data-bs-target="#modalAccede">Regístrate o inicia
-                sesión</a><br>
-            <a href="{% url 'anonimo' %}" class="btn text-secondary">Accede sin iniciar sesión</a>
-        </div>
-        <div class="main-image">
-            <img src="https://www.komoot.com/images/home/hero-signup-square-v002.jpg?width=700&height=460&crop=true&q=40"
-                 alt="Ciclismo en la naturaleza">
-        </div>
+{% block despUsuario %}
+    {#    <ul class="navbar-nav ms-auto">#}
+    {#        <li class="nav-item">#}
+    <div>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAccede" >Iniciar Sesión</button>
     </div>
 
     <!--Ventana Modal Accede-->
@@ -52,8 +35,8 @@
                         <button type="submit" class="btn btn-success container-fluid mt-3" name="enviar" value="ini">
                             Iniciar sesion
                         </button>
-                        <p><a  class="btn btn-secondary" href="#" data-bs-toggle="modal"
-                       data-bs-target="#modalOlvidoPassw"> ¿Has olvidado la contraseña?</a></p>
+                        <p><a class="btn btn-secondary" href="#" data-bs-toggle="modal"
+                              data-bs-target="#modalOlvidoPassw"> ¿Has olvidado la contraseña?</a></p>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -155,6 +138,77 @@
     </div>
 {% endblock %}
 
+{% block contenido %}
+    <div class="container mt-4 mb-4">
+        <div class="row row-cols-1 row-cols-md-1 g-4">
+            <div class="col">
+                {% for ruta in rutas %}
+                    <div class="card shadow-lg border rounded-4 mb-4">
+                        <div class="row g-0">
+                            <div class="col-md-4 col-7 mx-auto">
+                                <img src="/media/proyectoFinal/proyectoFinal/i_mapa_ruta_10.png" alt="imagen"
+                                     class="w-100 h-100 rounded-start"
+                                     style="border: none; border-radius: 15px 0 0 15px;">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body">
+                                    <h5 class="card-title d-flex align-items-center">
+                                        {{ ruta.titulo }}
+                                    </h5>
+                                    <p class="card-text text-muted mb-2">{{ ruta.fecha }}</p>
+                                    <div class="d-flex flex-wrap">
+                                        <div class="me-3">
+                                            <span class="text-muted">Tiempo</span> <strong>
+                                            {% if  ruta.tiempo.hour  > 0 %}
+                                                {{ ruta.tiempo.hour }}h
+                                            {% endif %}
+                                            {% if ruta.tiempo.minute > 0 %}
+                                                {% if ruta.tiempo.hour > 0 %} : {% endif %}
+                                                {{ ruta.tiempo.minute }}min
+                                            {% endif %}
+                                            {% if ruta.tiempo.second > 0 %}
+                                                {% if ruta.tiempo.hour > 0 or ruta.tiempo.minute > 0 %} : {% endif %}
+                                                {{ ruta.tiempo.second }}s
+                                            {% endif %}
+                                        </strong>
+                                        </div>
+                                        <div class="me-3">
+                                            <span class="text-muted">Distancia</span> <strong>{{ ruta.distancia }}
+                                            km</strong>
+                                        </div>
+                                        <div class="me-3">
+                                            <span class="text-muted">Velocidad</span> <strong>{{ ruta.velocidad }}
+                                            km/h</strong>
+                                        </div>
+                                        <div class="me-3">
+                                            <span class="text-muted">Ascenso</span> <strong>{{ ruta.ascenso }}
+                                            m</strong>
+                                        </div>
+                                        <div class="me-3">
+                                            <span class="text-muted">Descenso</span> <strong>{{ ruta.descenso }}
+                                            m</strong>
+                                        </div>
+                                        <div class="me-md-0 me-5">
+                                            <span class="text-muted">Dureza</span> <strong
+                                                class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'ficheros' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="card shadow-lg border rounded-4 mb-4">
+                        <div class="row g-0">
+                            <p>No hay rutas disponibles</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
 {% block js %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
