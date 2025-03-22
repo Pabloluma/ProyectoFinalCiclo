@@ -48,13 +48,11 @@
                 {% for ruta in rutas %}
                     <div class="card shadow-lg border rounded-4 mb-4">
                         <div class="row g-0">
+                        {% if ruta.imagen %}
                             <div class="col-md-4 col-7 mx-auto">
-                                <img src="/media/proyectoFinal/proyectoFinal/i_mapa_ruta_10.png" alt="imagen" class="w-100 h-100 rounded-start" style="border: none; border-radius: 15px 0 0 15px;">
-{#                                <iframe src="{% static '/img/mapa_ruta.html' %}"#}
-{#                                        class="w-100 h-100 rounded-start"#}
-{#                                        style="border: none; border-radius: 15px 0 0 15px;"#}
-{#                                        title="Mapa de la ruta"></iframe>#}
+                                <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}" alt="imagen" class="rounded-start" style="border: none; border-radius: 15px 0 0 15px; height: 150px; width: auto;">
                             </div>
+                        {% endif %}
                             <div class="col-md-8">
                                 <div class="card-body">
                                     <h5 class="card-title d-flex align-items-center">

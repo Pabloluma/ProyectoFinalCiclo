@@ -20,8 +20,9 @@
             </div>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                 <li><a class="dropdown-item" href="#">Perfil</a></li>
+                <li><a class="dropdown-item" href="{% url 'misRutas' %}">Mis Rutas</a></li>
                 {% if admin %}
-                <li><a class="dropdown-item" href={% url 'administracion' %}>Configuración</a></li>
+                    <li><a class="dropdown-item" href={% url 'administracion' %}>Configuración</a></li>
                 {% endif %}
 
                 <li>
@@ -48,9 +49,13 @@
                 {% for ruta in rutas %}
                     <div class="card shadow-lg border rounded-4 mb-4">
                         <div class="row g-0">
-                            <div class="col-md-4 col-7 mx-auto">
-                                <img src="/media/proyectoFinal/proyectoFinal/i_mapa_ruta_10.png" alt="imagen" class="w-100 h-100 rounded-start" style="border: none; border-radius: 15px 0 0 15px;">
-                            </div>
+                            {% if ruta.imagen %}
+                                <div class="col-md-4 col-9 mx-auto">
+                                    <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}" alt="imagen"
+                                         class="w-100 rounded-start"
+                                         style="border: none; border-radius: 15px 0 0 15px;">
+                                </div>
+                            {% endif %}
                             <div class="col-md-8">
                                 <div class="card-body">
                                     <h5 class="card-title d-flex align-items-center">

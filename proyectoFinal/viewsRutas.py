@@ -113,6 +113,7 @@ def analizar_gpx(fichero_gpx):
 
 def generarImagenMapaGPX(fichero_gpx, rutaGuardada):
     gpx = gpxpy.parse(fichero_gpx)
+
     coords = []
     for track in gpx.tracks:
         for segment in track.segments:
@@ -124,27 +125,28 @@ def generarImagenMapaGPX(fichero_gpx, rutaGuardada):
     gdf = gpd.GeoDataFrame(geometry=[line], crs="EPSG:4326")
     gdf = gdf.to_crs(epsg=3857)  # Web Mercator para contextily
 
-    '''# Plot
-    ax = gdf.plot(figsize=(10, 8), linewidth=3, color='blue')
-    ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
-    plt.savefig("ImagenRutaCordoba.png", dpi=300)
-    plt.show()'''
-
     # Crear imagen en memoria
-    fig, ax = plt.subplots(figsize=(4, 4))
+    fig, ax = plt.subplots(figsize=(10, 5))
     gdf.plot(ax=ax, linewidth=3, color='blue')
     ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
+
+    xmin, xmax = ax.get_xlim()
+    ancho_figura = fig.get_figwidth()  # Ancho de la figura en pulgadas
+    extension_longitud = (xmax - xmin) * (3 / ancho_figura)  # Aproximación de 3 pulgadas en longitud
+
+    xmin_extendido = xmin - extension_longitud
+    xmax_extendido = xmax + extension_longitud
+
+    # Establecer los límites extendidos del eje x
+    ax.set_xlim(xmin_extendido, xmax_extendido)
+
     ax.axis("off")
-    # fig, ax = plt.subplots(figsize=(10, 8))
-    # gdf.plot(ax=ax, linewidth=3, color='blue')
-    # ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
-    # ax.axis("off")
 
     # Crear un buffer en memoria
     img_buffer = io.BytesIO()
 
     # Guardar la imagen en el buffer de memoria
-    plt.savefig(img_buffer, format='png', dpi=300, bbox_inches='tight')
+    plt.savefig(img_buffer, format='png', dpi=700, bbox_inches='tight')
     plt.close(fig)
 
     img_buffer.seek(0)
