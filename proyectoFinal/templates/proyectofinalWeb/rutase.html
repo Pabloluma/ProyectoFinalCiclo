@@ -21,7 +21,7 @@
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                 <li><a class="dropdown-item" href="#">Perfil</a></li>
                 {% if admin %}
-                <li><a class="dropdown-item" href={% url 'administracion' %}>Configuración</a></li>
+                    <li><a class="dropdown-item" href={% url 'administracion' %}>Configuración</a></li>
                 {% endif %}
 
                 <li>
@@ -48,11 +48,13 @@
                 {% for ruta in rutas %}
                     <div class="card shadow-lg border rounded-4 mb-4">
                         <div class="row g-0">
-                        {% if ruta.imagen %}
-                            <div class="col-md-4 col-7 mx-auto">
-                                <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}" alt="imagen" class="rounded-start" style="border: none; border-radius: 15px 0 0 15px; height: 150px; width: auto;">
-                            </div>
-                        {% endif %}
+                            {% if ruta.imagen %}
+                                <div class="col-md-4 col-9 mx-auto">
+                                    <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}" alt="imagen"
+                                         class="w-100 rounded-start"
+                                         style="border: none; border-radius: 15px 0 0 15px;">
+                                </div>
+                            {% endif %}
                             <div class="col-md-8">
                                 <div class="card-body">
                                     <h5 class="card-title d-flex align-items-center">
@@ -91,9 +93,13 @@
                                             <span class="text-muted">Descenso</span> <strong>{{ ruta.descenso }}
                                             m</strong>
                                         </div>
+                                        <div class="me-3">
+                                            <span class="text-muted">Visibilidad</span>
+                                            <strong>{{ ruta.publico }}</strong>
+                                        </div>
                                         <div class="me-md-0 me-5">
                                             <span class="text-muted">Dureza</span> <strong
-                                                class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'ficheros' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
+                                                class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'media' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
                                         </div>
                                     </div>
                                 </div>
@@ -107,45 +113,6 @@
                         </div>
                     </div>
                 {% endfor %}
-                {#            <div class="card shadow-lg border rounded-4 mb-4">#}
-                {#                <div class="row g-0">#}
-                {#                    <div class="col-md-4">#}
-                {#                        <iframe src="{% static '/img/mapa_ruta.html' %}"#}
-                {#                                class="w-100 h-100 rounded-start"#}
-                {#                                style="border: none; border-radius: 15px 0 0 15px;"#}
-                {#                                title="Mapa de la ruta"></iframe>#}
-                {#                    </div>#}
-                {#                    <div class="col-md-8">#}
-                {#                        <div class="card-body">#}
-                {#                            <h5 class="card-title d-flex align-items-center">#}
-                {#                                Ruta en bici de carretera#}
-                {#                            </h5>#}
-                {#                            <p class="card-text text-muted mb-2">2 de enero de 2025</p>#}
-                {#                            <div class="d-flex flex-wrap">#}
-                {#                                <div class="me-3">#}
-                {#                                    <span class="text-muted">Tiempo</span> <strong>00:11</strong>#}
-                {#                                </div>#}
-                {#                                <div class="me-3">#}
-                {#                                    <span class="text-muted">Distancia</span> <strong>4,80 km</strong>#}
-                {#                                </div>#}
-                {#                                <div class="me-3">#}
-                {#                                    <span class="text-muted">Velocidad</span> <strong>25,1 km/h</strong>#}
-                {#                                </div>#}
-                {#                                <div class="me-3">#}
-                {#                                    <span class="text-muted">Ascenso</span> <strong>50 m</strong>#}
-                {#                                </div>#}
-                {#                                <div class="me-3">#}
-                {#                                    <span class="text-muted">Descenso</span> <strong>80 m</strong>#}
-                {#                                </div>#}
-                {#                                <div class="me-md-0 me-5">#}
-                {#                                    <span class="text-muted">Dureza</span> <strong#}
-                {#                                        class="border rounded border-danger px-3 py-0 text-danger">ficheros</strong>#}
-                {#                                </div>#}
-                {#                            </div>#}
-                {#                        </div>#}
-                {#                    </div>#}
-                {#                </div>#}
-                {#            </div>#}
             </div>
         </div>
     </div>

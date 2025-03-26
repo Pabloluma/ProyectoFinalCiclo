@@ -1,4 +1,4 @@
-from . import views, viewsRutas
+from . import views, viewsRutas, viewsVideos
 from . import viewsCalculaDureza
 from django.urls import path
 from django.contrib.auth import views as auth_views
@@ -14,6 +14,9 @@ urlpatterns = [
 
     path('administracion/', views.administracion, name='administracion'),
     path('durezaRuta/', viewsCalculaDureza.calcular, name='calcularDureza'),
+    path('listaVideos/', viewsVideos.mostrarLista, name='listaVideos'),
+
+    path('listaVideos/videos', viewsVideos.cargarVideos, name='videos'),
 
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
 
