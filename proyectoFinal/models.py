@@ -24,9 +24,15 @@ class Rutas(models.Model):
         return f"{self.titulo} - {self.idUsuario.first_name}"
 
 
-class tiposBicicletas(models.Model):
-    nombre_tipo = models.CharField(max_length=50, unique=True)
-    tipoNeumatico = models.CharField(max_length=45)
+class Comentarios(models.Model):
+    comentario = models.CharField(max_length=300)
+    id_ruta = models.ForeignKey(Rutas, on_delete=models.CASCADE)
+
+
+#
+# class tiposBicicletas(models.Model):
+#     nombre_tipo = models.CharField(max_length=50, unique=True)
+#     tipoNeumatico = models.CharField(max_length=45)
 
 
 class caracteristicas(models.Model):
@@ -35,6 +41,18 @@ class caracteristicas(models.Model):
     peso = models.DecimalField(max_digits=5, decimal_places=2)
     estado = models.PositiveSmallIntegerField()
     suelo = models.PositiveSmallIntegerField()
-    # tipo_bici = models.PositiveSmallIntegerField()
-    tipo_bici = models.ForeignKey(tiposBicicletas, on_delete=models.CASCADE, null=True, blank=True)
+    tipo_bici = models.PositiveSmallIntegerField()
+    # tipo_bici = models.ForeignKey(tiposBicicletas, on_delete=models.CASCADE, null=True, blank=True)
     usuario_id = models.OneToOneField(User, on_delete=models.CASCADE)
+
+
+class lista(models.Model):
+    nombre = models.CharField(max_length=45)
+
+
+class videos(models.Model):
+    direccion = models.CharField(max_length=200)
+    imagen = models.ImageField(upload_to="proyectoFinal", null=True, blank=True)
+    id_usuario = models.OneToOneField(User, on_delete=models.CASCADE)
+    id_lista = models.ForeignKey(lista, on_delete=models.CASCADE)
+

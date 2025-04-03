@@ -93,6 +93,7 @@ def acceso(request):
 
     return redirect('index')
 
+
 @login_required(login_url='index')
 def administracion(request):
     if request.user.is_authenticated and request.user.is_staff:
@@ -114,4 +115,8 @@ def inicio(request):
 
 def accesoAnonimo(request):
     if request.user.is_anonymous:
-        return render(request, 'proyectofinalWeb/vistaUsuarioAnonimo.html')
+        if request.method == 'GET':
+            listaRutas = Rutas.objects.filter(publico=True)
+            return render(request, 'proyectofinalWeb/vistaUsuarioAnonimo.html', {"rutas": listaRutas})
+    else:
+        return redirect('index')
