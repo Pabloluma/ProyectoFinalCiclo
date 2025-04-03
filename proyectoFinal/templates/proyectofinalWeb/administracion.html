@@ -24,13 +24,13 @@
                 <li>
                     <hr class="dropdown-divider">
                 </li>
-                 <li>
+                <li>
                     <form action="{% url 'index' %}" method="post">
                         {% csrf_token %}
                         <input class="dropdown-item" type="submit" value="Cerrar Sesion">
                     </form>
                 </li>
-{#                <li><a class="dropdown-item" href="{% url 'index' %}">Cerrar sesión</a></li>#}
+                {#                <li><a class="dropdown-item" href="{% url 'index' %}">Cerrar sesión</a></li>#}
             </ul>
         </li>
     </ul>
@@ -38,15 +38,6 @@
 
 {% block contenido %}
     <div class="container mt-4 mb-4">
-        <div class="text-center mb-3">
-            <button class="btn btn-primary me-2" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-                Ir a videos y usuarios
-            </button>
-            <button class="btn btn-primary" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-                Ir a tienda
-            </button>
-        </div>
-
         <div id="carouselExample" class="carousel slide">
             <div class="carousel-inner">
                 <div class="carousel-item active">
@@ -73,7 +64,8 @@
                                         <div class="col-lg-4 col-md-6 col-12">
                                             <div class="card">
                                                 <div class="card-body">
-                                                    <img src="{% static 'ficheros/intensidades.jpg' %}" class="card-img-top"
+                                                    <img src="{% static 'ficheros/intensidades.jpg' %}"
+                                                         class="card-img-top"
                                                          alt="Cardio Yes or No">
 
                                                     <p class="fs-3">Título</p>
@@ -88,7 +80,8 @@
                                         <div class="col-lg-4 col-md-6 col-12">
                                             <div class="card">
                                                 <div class="card-body">
-                                                    <img src="{% static 'ficheros/intensidades.jpg' %}" class="card-img-top"
+                                                    <img src="{% static 'ficheros/intensidades.jpg' %}"
+                                                         class="card-img-top"
                                                          alt="Movilidad Rock Back">
                                                     <p class="fs-3">Título</p>
                                                     <p class="card-text">Some quick example text to build on the card
@@ -102,7 +95,8 @@
                                         <div class="col-lg-4 col-md-6 col-12">
                                             <div class="card">
                                                 <div class="card-body">
-                                                    <img src="{% static 'ficheros/intensidades.jpg' %}" class="card-img-top"
+                                                    <img src="{% static 'ficheros/intensidades.jpg' %}"
+                                                         class="card-img-top"
                                                          alt="Movilidad Rock Back">
                                                     <p class="fs-3">Título</p>
                                                     <p class="card-text">Some quick example text to build on the card
@@ -129,14 +123,14 @@
                                                         and make up
                                                         the bulk of the card's content.</p>
                                                     <a href="#" class="card-link text-danger">Eliminar</a>
-
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-lg-4 col-md-6 col-12">
                                             <div class="card">
                                                 <div class="card-body">
-                                                    <img src="{% static 'ficheros/intensidades.jpg' %}" class="card-img-top"
+                                                    <img src="{% static 'ficheros/intensidades.jpg' %}"
+                                                         class="card-img-top"
                                                          alt="Movilidad Rock Back">
                                                     <p class="fs-3">Título</p>
                                                     <p class="card-text">Some quick example text to build on the card
@@ -210,70 +204,45 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="carousel-item">
-                    <div class="accordion py-5">
-                        <h2 class="text-center">Administración de Componentes de Ciclismo</h2>
-                        <div class="text-center mb-3">
-                            <button class="btn btn-success" data-bs-toggle="modal"
-                                    data-bs-target="#modalAniadirComponente">
-                                Añadir Componente
-                            </button>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-bordered text-center">
-                                <thead class=" bg-primary text-white">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Categoría</th>
-                                    <th>Precio</th>
-                                    <th>Acciones</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>Cadena Shimano Ultegra XT HG701 11 velocidades 116 eslabones QL</td>
-                                    <td>Cadenas Bicicleta</td>
-                                    <td>30€</td>
-                                    <td>
-                                        <div class="d-flex flex-wrap row justify-content-center gap-2 w-sm-50 w-100 mx-auto">
-                                            <button class="btn btn-warning col">Editar</button>
-                                            <button class="btn btn-danger col">Eliminar</button>
-                                        </div>
-                                    </td>
-
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>Pedales Favero Assioma DUO</td>
-                                    <td>Pedales Ciclismo</td>
-                                    <td>659,95 €</td>
-                                    <td>
-                                        <div class="d-flex flex-wrap row justify-content-center gap-2 w-sm-50 w-100 mx-auto">
-                                            <button class="btn btn-warning col">Editar</button>
-                                            <button class="btn btn-danger col">Eliminar</button>
-                                        </div>
-                                    </td>
-
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>Cubierta Limited Edition Pirelli x Finisseur P ZERO Race negro</td>
-                                    <td>Cubiertas Ciclismo</td>
-                                    <td>49,95 €</td>
-                                    <td>
-                                        <div class="d-flex flex-wrap row justify-content-center gap-2 w-sm-50 w-100 mx-auto">
-                                            <button class="btn btn-warning col">Editar</button>
-                                            <button class="btn btn-danger col">Eliminar</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#panelsStayOpen-collapseThree" aria-expanded="true"
+                                        aria-controls="panelsStayOpen-collapseThree">
+                                    RUTAS
+                                </button>
+                            </h2>
+                            <div id="panelsStayOpen-collapseThree" class="accordion-collapse collapse show">
+                                <div class="accordion-body">
+                                    <div class="text-center mb-5">
+                                        <button class="btn btn-primary" data-bs-toggle="modal"
+                                                data-bs-target="#modalAniadirVideo">
+                                            Añadir Vídeo
+                                        </button>
+                                    </div>
+                                    <div class="row g-4">
+                                        {% for ruta in todasRutas %}
+                                            <div class="col-lg-4 col-md-6 col-12 d-flex">
+                                                <div class="card flex-fill">
+                                                    <div class="card-body">
+                                                        <div style="height: 560px; width: 100%;">
+                                                            <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}"
+                                                                 class="h-100 card-img-top img-fluid"
+                                                                 alt="imagen">
+                                                        </div>
+                                                        <p class="fs-3">{{ ruta.titulo }}</p>
+                                                        <p class="card-text m-0">Distancia: {{ ruta.distancia }} km</p>
+                                                        <p class="card-text m-0">Tiempo: {{ ruta.tiempo }}</p>
+                                                        <p class="card-text m-0">Velocidad Media: {{ ruta.velocidad }}km/h</p>
+                                                        <p class="card-text ">Usuario: {{ ruta.idUsuario.username }}</p>
+                                                        <a href="#" class="card-link text-danger">Eliminar</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

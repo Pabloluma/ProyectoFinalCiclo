@@ -99,7 +99,10 @@ def administracion(request):
     if request.user.is_authenticated and request.user.is_staff:
         usuario = get_user_model()
         listaUsuarios = usuario.objects.all()
-        return render(request, 'proyectofinalWeb/administracion.html', {"usuarios": listaUsuarios})
+        listaRutas = Rutas.objects.all()
+        for r in listaRutas:
+            print(r.velocidad)
+        return render(request, 'proyectofinalWeb/administracion.html', {"usuarios": listaUsuarios, "todasRutas":listaRutas})
     else:
         return redirect('index')
 
