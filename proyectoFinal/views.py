@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -5,7 +7,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
+import humanize
+from django.utils import timezone
 
 # Create your views here.
 from django.template.loader import render_to_string
@@ -14,8 +19,9 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
 from django.contrib.auth import get_user_model
+from django.views.decorators.csrf import csrf_exempt
 
-from .models import Rutas
+from .models import Rutas, caracteristicas
 
 
 def index(request):
@@ -100,18 +106,27 @@ def administracion(request):
         usuario = get_user_model()
         listaUsuarios = usuario.objects.all()
         listaRutas = Rutas.objects.all()
-        for r in listaRutas:
-            print(r.velocidad)
-        return render(request, 'proyectofinalWeb/administracion.html', {"usuarios": listaUsuarios, "todasRutas":listaRutas})
+        return render(request, 'proyectofinalWeb/administracion.html',
+                      {"usuarios": listaUsuarios, "todasRutas": listaRutas})
     else:
         return redirect('index')
+
+
+def diferenciaTiempo(fecha_subida):
+    fecha_actual = timezone.now()
+    diferencia = fecha_actual - fecha_subida
+    tiempo_relativo = humanize.naturaltime(diferencia)
+    return tiempo_relativo
 
 
 def inicio(request):
     if request.user.is_authenticated:
         if request.method == 'GET':
-            listaRutas = Rutas.objects.filter(publico=True)
-            return render(request, 'proyectofinalWeb/inicioRutasTodos.html', {"rutas": listaRutas})
+            listaRutas = Rutas.objects.filter(publico=True).prefetch_related("comentarios")
+            for ruta in listaRutas:
+                ruta.diferencia = diferenciaTiempo(ruta.fechaSubida)
+            return render(request, 'proyectofinalWeb/inicioRutasTodos.html',
+                          {"rutas": listaRutas})
     else:
         return redirect('index')
 
@@ -119,7 +134,45 @@ def inicio(request):
 def accesoAnonimo(request):
     if request.user.is_anonymous:
         if request.method == 'GET':
-            listaRutas = Rutas.objects.filter(publico=True)
+            listaRutas = Rutas.objects.filter(publico=True).prefetch_related("comentarios")
+            for ruta in listaRutas:
+                ruta.diferencia = diferenciaTiempo(ruta.fechaSubida)
             return render(request, 'proyectofinalWeb/vistaUsuarioAnonimo.html', {"rutas": listaRutas})
     else:
         return redirect('index')
+
+
+def perfil(request):
+    listaRutas = Rutas.objects.filter(idUsuario_id=request.user.id)
+    listaCaract = caracteristicas.objects.filter(usuario_id_id=request.user.id)
+    return render(request,'proyectofinalWeb/perfil.html', {"rutas": listaRutas, "caract": listaCaract})
+
+
+@csrf_exempt
+def actualizar_usuario(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+
+        row_id = data.get('rowId')
+        value = data.get('value')
+        user_id = request.user.id  # O usa otro identificador si no es el usuario logueado
+
+        # Aquí actualizas el campo correspondiente según el row_id
+        from .models import TuModeloUsuario  # ajusta al modelo correcto
+
+        usuario = TuModeloUsuario.objects.get(id=user_id)
+
+        if row_id == 'id_terreno':
+            usuario.terreno_preferido = value
+        elif row_id == 'id_tipoBici':
+            usuario.tipo_bici = value
+        elif row_id == 'id_peso':
+            usuario.peso = value
+        elif row_id == 'id_nomUsu':
+            usuario.nombre = value
+
+        usuario.save()
+
+        return JsonResponse({'status': 'ok'})
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)

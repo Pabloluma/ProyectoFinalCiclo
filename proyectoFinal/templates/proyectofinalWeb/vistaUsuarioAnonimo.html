@@ -139,17 +139,31 @@
 {% endblock %}
 
 {% block contenido %}
-    <div class="container mt-4 mb-4">
+   <div class="container mt-4 mb-4">
         <div class="row row-cols-1 row-cols-md-1 g-4">
             <div class="col">
                 {% for ruta in rutas %}
                     <div class="card shadow-lg border rounded-4 mb-4">
                         <div class="row g-0">
-                            <div class="col-md-4 col-7 mx-auto">
-                                <img src="/media/proyectoFinal/proyectoFinal/i_mapa_ruta_10.png" alt="imagen"
-                                     class="w-100 h-100 rounded-start"
-                                     style="border: none; border-radius: 15px 0 0 15px;">
+                            <div class="col-md-12 p-3 d-flex align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor"
+                                     class="rounded-circle me-2 bi bi-person-circle" viewBox="0 0 16 16">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                                    <path fill-rule="evenodd"
+                                          d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                                </svg>
+                                <div>
+                                    <strong>Pablo</strong>
+                                    <p class="text-muted mb-0" style="font-size: 0.85rem;">{{ ruta.diferencia }}</p>
+                                </div>
                             </div>
+                            {% if ruta.imagen %}
+                                <div class="col-md-4 col-9 mx-auto">
+                                    <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}" alt="imagen"
+                                         class="w-100 rounded-start"
+                                         style="border: none; border-radius: 15px 0 0 15px;">
+                                </div>
+                            {% endif %}
                             <div class="col-md-8">
                                 <div class="card-body">
                                     <h5 class="card-title d-flex align-items-center">
@@ -190,8 +204,12 @@
                                         </div>
                                         <div class="me-md-0 me-5">
                                             <span class="text-muted">Dureza</span> <strong
-                                                class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'ficheros' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
+                                                class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'media' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
                                         </div>
+                                    </div>
+                                    <div class="mt-2 btn ">
+                                        <img src="/media/proyectoFinal/message-regular.jpg" width="16" alt=""> <small>{% if ruta.comentarios.count > 0%}{{ ruta.comentarios.count }}
+                                        comentarios</small>{% endif %}
                                     </div>
                                 </div>
                             </div>

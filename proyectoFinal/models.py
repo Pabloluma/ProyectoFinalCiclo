@@ -17,6 +17,7 @@ class Rutas(models.Model):
     dureza = models.CharField(max_length=45)
     imagen = models.ImageField(upload_to="proyectoFinal", null=True, blank=True)
     publico = models.BooleanField(default=False)
+    fechaSubida = models.DateTimeField(auto_now_add=True)
     # imagen = models.CharField(max_length=100, blank=True, null=True)
     idUsuario = models.ForeignKey(User, on_delete=models.CASCADE)
 
@@ -26,7 +27,7 @@ class Rutas(models.Model):
 
 class Comentarios(models.Model):
     comentario = models.CharField(max_length=300)
-    id_ruta = models.ForeignKey(Rutas, on_delete=models.CASCADE)
+    id_ruta = models.ForeignKey(Rutas, on_delete=models.CASCADE, related_name="comentarios")
 
 
 #
@@ -37,6 +38,7 @@ class Comentarios(models.Model):
 
 class caracteristicas(models.Model):
     edad = models.PositiveIntegerField()
+    fechaNacimiento = models.DateField()
     estatura = models.DecimalField(max_digits=3, decimal_places=2)
     peso = models.DecimalField(max_digits=5, decimal_places=2)
     estado = models.PositiveSmallIntegerField()

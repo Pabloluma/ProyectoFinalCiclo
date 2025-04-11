@@ -17,6 +17,9 @@ urlpatterns = [
     path('listaVideos/', viewsVideos.mostrarLista, name='listaVideos'),
 
     path('listaVideos/videos', viewsVideos.cargarVideos, name='videos'),
+    path('perfil/', views.perfil, name='perfil'),
+
+    path('actualizar_usuario/', views.actualizar_usuario, name='actualizar_usuario'),
 
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
 

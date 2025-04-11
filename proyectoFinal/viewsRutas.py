@@ -21,6 +21,7 @@ import contextily as ctx
 
 from django.shortcuts import render, redirect
 
+from proyectoFinal import views
 from proyectoFinal.models import Rutas
 
 
@@ -312,9 +313,9 @@ def formularioNuevaRuta(request):
 def mis_rutas(request):
     if request.user.is_authenticated:
         if request.method == 'GET':
-            # esAdmin = request.user.is_staff
-            listaRutas = Rutas.objects.filter(idUsuario=request.user.id)
-            # return render(request, 'rutase.html', {"rutas": listaRutas, "admin": esAdmin, "nombre":request.user.username})
+            listaRutas = Rutas.objects.filter(idUsuario=request.user.id).prefetch_related("comentarios")
+            for r in listaRutas:
+                r.diferencia = views.diferenciaTiempo(r.fechaSubida)
             return render(request, 'proyectofinalWeb/rutase.html', {"rutas": listaRutas})
     else:
         return redirect('index')

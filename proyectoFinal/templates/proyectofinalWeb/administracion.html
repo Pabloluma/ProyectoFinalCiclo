@@ -232,7 +232,18 @@
                                                         </div>
                                                         <p class="fs-3">{{ ruta.titulo }}</p>
                                                         <p class="card-text m-0">Distancia: {{ ruta.distancia }} km</p>
-                                                        <p class="card-text m-0">Tiempo: {{ ruta.tiempo }}</p>
+                                                        <p class="card-text m-0">Tiempo: {% if  ruta.tiempo.hour  > 0 %}
+                                                            {{ ruta.tiempo.hour }}h
+                                                        {% endif %}
+                                                            {% if ruta.tiempo.minute > 0 %}
+                                                                {% if ruta.tiempo.hour > 0 %} : {% endif %}
+                                                                {{ ruta.tiempo.minute }}min
+                                                            {% endif %}
+                                                            {% if ruta.tiempo.second > 0 %}
+                                                                {% if ruta.tiempo.hour > 0 or ruta.tiempo.minute > 0 %}
+                                                                    : {% endif %}
+                                                                {{ ruta.tiempo.second }}s
+                                                            {% endif %}</p>
                                                         <p class="card-text m-0">Velocidad Media: {{ ruta.velocidad }}km/h</p>
                                                         <p class="card-text ">Usuario: {{ ruta.idUsuario.username }}</p>
                                                         <a href="#" class="card-link text-danger">Eliminar</a>

@@ -19,7 +19,7 @@
                 </a>
             </div>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                <li><a class="dropdown-item" href="#">Perfil</a></li>
+                <li><a class="dropdown-item" href="{% url 'perfil' %}">Perfil</a></li>
                 {% if admin %}
                     <li><a class="dropdown-item" href={% url 'administracion' %}>Configuración</a></li>
                 {% endif %}
@@ -48,6 +48,11 @@
                 {% for ruta in rutas %}
                     <div class="card shadow-lg border rounded-4 mb-4">
                         <div class="row g-0">
+                        <div class="col-md-12 p-3 d-flex align-items-center">
+                                <div>
+                                    <p class="text-muted mb-0" style="font-size: 0.85rem;">{{ ruta.diferencia }}</p>
+                                </div>
+                            </div>
                             {% if ruta.imagen %}
                                 <div class="col-md-4 col-9 mx-auto">
                                     <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}" alt="imagen"
@@ -101,6 +106,11 @@
                                             <span class="text-muted">Dureza</span> <strong
                                                 class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'media' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
                                         </div>
+                                    </div>
+                                    <div class="mt-2 btn ">
+                                        <img src="/media/proyectoFinal/message-regular.jpg" width="16" alt=""> <small>
+                                        {% if ruta.comentarios.count > 0 %}{{ ruta.comentarios.count }}
+                                            comentarios</small>{% endif %}
                                     </div>
                                 </div>
                             </div>
