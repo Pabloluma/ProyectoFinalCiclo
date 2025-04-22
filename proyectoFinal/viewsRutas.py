@@ -32,17 +32,17 @@ def analizar_gpx(fichero_gpx):
     # gpx = fichero_gpx.read().decode('utf-8')
     # gpx = gpxpy.parse(gpx)
     gpx = gpxpy.parse(fichero_gpx)
-    distancia_total = 0.0  # En km
+    distancia_total = 0.0
     tiempo_total = timedelta(seconds=0)
     tiempo_movimiento = timedelta(seconds=0)
     tiempo_pausa = timedelta(seconds=0)
 
-    velocidad_maxima = 0.0  # En km/h
+    velocidad_maxima = 0.0
 
     altitud_max = float('-inf')
     altitud_min = float('inf')
-    ganancia_altitud = 0.0  # En metros
-    perdida_altitud = 0.0  # En metros
+    ganancia_altitud = 0.0
+    perdida_altitud = 0.0
     if gpx.name is not None and gpx.time is not None:
         titulo = gpx.name
         fecha = gpx.time.date()
@@ -58,30 +58,24 @@ def analizar_gpx(fichero_gpx):
                     p1 = segment.points[i - 1]
                     p2 = segment.points[i]
 
-                    # Calcular distancia entre puntos
                     distancia = geodesic((p1.latitude, p1.longitude), (p2.latitude, p2.longitude)).km
                     distancia_total += distancia
 
-                    # Calcular tiempo entre puntos
                     tiempo_transcurrido = (p2.time - p1.time).total_seconds()
                     tiempo_total += timedelta(seconds=tiempo_transcurrido)
 
-                    # Calcular velocidad instantánea
                     if tiempo_transcurrido > 0:
                         velocidad = (distancia * 1000) / tiempo_transcurrido  # m/s
                         velocidad_kmh = velocidad * 3.6  # Convertir a km/h
 
-                        # Guardar velocidad máxima
                         if velocidad_kmh > velocidad_maxima:
                             velocidad_maxima = velocidad_kmh
 
-                        # Determinar si estaba en movimiento
                         if velocidad > UMBRAL_MOVIMIENTO:
                             tiempo_movimiento += timedelta(seconds=tiempo_transcurrido)
                         else:
                             tiempo_pausa += timedelta(seconds=tiempo_transcurrido)
 
-                    # Cálculo de altitudes
                     if p1.elevation is not None and p2.elevation is not None:
                         altitud_max = max(altitud_max, p2.elevation)
                         altitud_min = min(altitud_min, p2.elevation)
@@ -92,7 +86,6 @@ def analizar_gpx(fichero_gpx):
                         else:
                             perdida_altitud += abs(diferencia_altitud)
 
-    # Calcular velocidad ficheros en movimiento (km/h)
     velocidad_media = (distancia_total / (
             tiempo_movimiento.total_seconds() / 3600)) if tiempo_movimiento.total_seconds() > 0 else 0
 
@@ -143,10 +136,8 @@ def generarImagenMapaGPX(fichero_gpx, rutaGuardada):
 
     ax.axis("off")
 
-    # Crear un buffer en memoria
     img_buffer = io.BytesIO()
 
-    # Guardar la imagen en el buffer de memoria
     plt.savefig(img_buffer, format='png', dpi=700, bbox_inches='tight')
     plt.close(fig)
 
@@ -159,14 +150,12 @@ def generarImagenMapaGPX(fichero_gpx, rutaGuardada):
 def generarMapaGPX_HTML(fichero_gpx):
     gpx = gpxpy.parse(fichero_gpx)
 
-    # Extraer los puntos de la ruta
     ruta = []
     for track in gpx.tracks:
         for segment in track.segments:
             for point in segment.points:
                 ruta.append((point.latitude, point.longitude))
 
-    # Crear un mapa centrado en el primer punto de la ruta
     mapa = folium.Map(location=ruta[0], zoom_start=14)
 
     # Añadir la ruta en el mapa

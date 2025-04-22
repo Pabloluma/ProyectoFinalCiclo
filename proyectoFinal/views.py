@@ -1,4 +1,6 @@
+import datetime
 import json
+import os
 
 from django.conf import settings
 from django.contrib import messages
@@ -44,60 +46,68 @@ def index(request):
 
 
 def acceso(request):
-    botonEnv = request.POST.get("enviar")
-    if botonEnv == "reg":
-        email = request.POST.get("email")
-        usuario = request.POST.get("usuario")
-        password_verif = request.POST.get("reppassword")
-        password = request.POST.get("password")
-        try:
-            if password == password_verif:
-                usuario = User.objects.create_user(usuario, email, password)
-                usuario.save()
-        except Exception as e:
-            # Hay que poner en el html que ha dado error
-            return render(request, "proyectofinalWeb/indexe.html", {"error": str(e)})
+    if request.method == "POST":
+        botonEnv = request.POST.get("enviar")
+        if botonEnv == "reg":
+            email = request.POST.get("email")
+            nombre = request.POST.get("nombre")
+            apellidos = request.POST.get("apellidos")
+            usuario = request.POST.get("usuario")
+            password_verif = request.POST.get("reppassword")
+            password = request.POST.get("password")
+            try:
+                if password == password_verif:
+                    usuario_reg = User.objects.create_user(usuario, email, password, first_name=nombre,
+                                                           last_name=apellidos)
+                    usuario_reg.save()
 
-    elif botonEnv == "ini":
-        password = request.POST.get('password')
-        username = request.POST.get('username')
-        if username != None and password != None:
-            usuario = authenticate(request, username=username, password=password)
-            if usuario is not None:
-                login(request, usuario)
-                messages.success(request, "Inicio de sesión exitoso.")
-                usuariosAdmin = User.objects.filter(is_staff=True)
-                for usuario in usuariosAdmin:
-                    print(usuario.username, usuario.email)
-                return redirect('inicio')
-    elif botonEnv == "recPass":
-        emailRec = request.POST.get('emailRec')
-        try:
-            user = User.objects.get(email=emailRec)
-            # Enviar el correo para el restablecimiento de la contraseña
-            token = default_token_generator.make_token(user)
+                    carac = caracteristicas(tipo_bici=1, estado=0, suelo=1, usuario=usuario_reg)
+                    carac.save()
+            except Exception as e:
+                # Hay que poner en el html que ha dado error
+                return render(request, "proyectofinalWeb/indexe.html", {"error": str(e)})
+        elif botonEnv == "ini":
+            password = request.POST.get('password')
+            username = request.POST.get('username')
+            if username != None and password != None:
+                usuario = authenticate(request, username=username, password=password)
+                if usuario is not None:
+                    login(request, usuario)
+                    messages.success(request, "Inicio de sesión exitoso.")
+                    usuariosAdmin = User.objects.filter(is_staff=True)
+                    for usuario in usuariosAdmin:
+                        print(usuario.username, usuario.email)
+                    return redirect('inicio')
+        elif botonEnv == "recPass":
+            emailRec = request.POST.get('emailRec')
+            try:
+                user = User.objects.get(email=emailRec)
+                # Enviar el correo para el restablecimiento de la contraseña
+                token = default_token_generator.make_token(user)
 
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            # Generamos el enlace para el restablecimiento
-            reset_link = request.build_absolute_uri(
-                reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
-            )
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                # Genera el enlace para restablecer la contraseña
+                reset_link = request.build_absolute_uri(
+                    reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
+                )
 
-            # Crear el mensaje que se enviará al usuario
-            subject = "Solicitud de Restablecimiento de Contraseña"
-            message = render_to_string('proyectofinalWeb/password_reset_email.html', {
-                'user': user,
-                'reset_link': reset_link,
-            })
+                # Crear el mensaje que se enviará al usuario
+                subject = "Solicitud de Restablecimiento de Contraseña"
+                message = render_to_string('proyectofinalWeb/password_reset_email.html', {
+                    'user': user,
+                    'reset_link': reset_link,
+                })
 
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [emailRec])
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [emailRec])
 
-            messages.success(request, "Te hemos enviado un enlace de restablecimiento de contraseña a tu correo.")
+                messages.success(request, "Te hemos enviado un enlace de restablecimiento de contraseña a tu correo.")
 
-        except User.DoesNotExist:
-            messages.error(request, "No se encontró un usuario con ese correo electrónico.")
+            except User.DoesNotExist:
+                messages.error(request, "No se encontró un usuario con ese correo electrónico.")
 
-    return redirect('index')
+        return redirect('index')
+    else:
+        return redirect("index")
 
 
 @login_required(login_url='index')
@@ -145,34 +155,37 @@ def accesoAnonimo(request):
 def perfil(request):
     listaRutas = Rutas.objects.filter(idUsuario_id=request.user.id)
     listaCaract = caracteristicas.objects.filter(usuario_id_id=request.user.id)
-    return render(request,'proyectofinalWeb/perfil.html', {"rutas": listaRutas, "caract": listaCaract})
+    if listaCaract:
+        ruta_json = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\diccionarios.json')
+        with open(ruta_json, 'r') as f:
+            datos_json = json.load(f)
+        valorSuelo = datos_json['dic_suelo'][str(listaCaract[0].suelo)]
+        valorBici = datos_json['dic_bici'][str(listaCaract[0].tipo_bici)]
+        valorEstado = datos_json['dic_estado'][str(listaCaract[0].estado)]
+        return render(request, 'proyectofinalWeb/perfil.html',
+                      {"rutas": listaRutas, "caract": listaCaract, "suelo": valorSuelo, "bici": valorBici,
+                       "estado": valorEstado})
+    else:
+        return render(request, 'proyectofinalWeb/perfil.html',
+                      {"rutas": listaRutas, "caract": listaCaract})
 
 
+# Hay que depurarlo salta un error en el javascript, revisar javascript y esta función
 @csrf_exempt
 def actualizar_usuario(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-
-        row_id = data.get('rowId')
-        value = data.get('value')
-        user_id = request.user.id  # O usa otro identificador si no es el usuario logueado
-
-        # Aquí actualizas el campo correspondiente según el row_id
-        from .models import TuModeloUsuario  # ajusta al modelo correcto
-
-        usuario = TuModeloUsuario.objects.get(id=user_id)
-
-        if row_id == 'id_terreno':
-            usuario.terreno_preferido = value
-        elif row_id == 'id_tipoBici':
-            usuario.tipo_bici = value
-        elif row_id == 'id_peso':
-            usuario.peso = value
-        elif row_id == 'id_nomUsu':
-            usuario.nombre = value
-
-        usuario.save()
-
-        return JsonResponse({'status': 'ok'})
-
-    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+        try:
+            data = json.loads(request.body)
+            nuevo_tipo_bici = data.get('nuevo_tipo_bici')
+            ruta_json = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\diccionarios.json')
+            with open(ruta_json, 'r') as f:
+                datos_json = json.load(f)
+            dic_bici = datos_json.get("dic_bici")
+            if dic_bici and isinstance(dic_bici, dict):
+                for clave, valor in dic_bici.items():
+                    if valor == nuevo_tipo_bici:
+                        return clave
+            return None
+        except json.JSONDecodeError:
+            print("Error: El JSON proporcionado no es válido.")
+            return None
