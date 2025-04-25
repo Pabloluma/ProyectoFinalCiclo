@@ -176,16 +176,40 @@ def actualizar_usuario(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            nuevo_tipo_bici = data.get('nuevo_tipo_bici')
+            valorSelec = data.get('valor')
             ruta_json = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\diccionarios.json')
             with open(ruta_json, 'r') as f:
                 datos_json = json.load(f)
-            dic_bici = datos_json.get("dic_bici")
-            if dic_bici and isinstance(dic_bici, dict):
-                for clave, valor in dic_bici.items():
-                    if valor == nuevo_tipo_bici:
-                        return clave
-            return None
+
+            for clave_principal, subdiccionario in datos_json.items():
+                if isinstance(subdiccionario, dict):
+                    if valorSelec in subdiccionario.values():
+                        clave_json = clave_principal
+                        elem_subjson = datos_json.get(clave_json)
+
+            if elem_subjson and isinstance(elem_subjson, dict):
+                for clave, valor in elem_subjson.items():
+                    if valor == valorSelec:
+                        print(f"Clave: {clave}")
+                        return JsonResponse({'success': True, 'clave': clave})
+
+            # dic_bici = datos_json.get("dic_bici")
+            # if dic_bici and isinstance(dic_bici, dict):
+            #     for clave, valor in dic_bici.items():
+            #         if valor == valorSelec:
+            #             print(f"Clave: {clave}")
+            #             return JsonResponse({'success': True, 'clave': clave})
+            #         else:
+            #             return JsonResponse({'success': False}, status=400)
         except json.JSONDecodeError:
-            print("Error: El JSON proporcionado no es válido.")
-            return None
+            error_message = "JSON no válido"
+            print(f"Error: {error_message}")
+            return JsonResponse({'success': False, 'error': error_message}, status=400)
+        except FileNotFoundError:
+            error_message = "Archivo no encontrado"
+            print(f"Error: {error_message}")
+            return JsonResponse({'success': False, 'error': error_message}, status=500)
+        except Exception as e:
+            error_message = f'Error inesperado: {e}'
+            print(f"Error: {error_message}")
+            return JsonResponse({'success': False, 'error': error_message}, status=500)
