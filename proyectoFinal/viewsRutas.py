@@ -4,7 +4,6 @@ import os
 
 import gpxpy
 import gpxpy.gpx
-import folium
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from geopy.distance import geodesic
@@ -22,7 +21,49 @@ import contextily as ctx
 from django.shortcuts import render, redirect
 
 from proyectoFinal import views
+from proyectoFinal.decorator import usuario_no_admin_requerido
 from proyectoFinal.models import Rutas
+
+from fitparse import FitFile
+import folium
+
+
+def obtener_mapaFit_html(archivo_fit):
+    fitfile = FitFile(archivo_fit)
+
+    # Extraer puntos GPS
+    ruta = []
+    for record in fitfile.get_messages("record"):
+        lat = record.get_value("position_lat")
+        lon = record.get_value("position_long")
+
+        if lat is not None and lon is not None:
+            # Convertir de semicircles a grados
+            lat = lat * (180 / 2 ** 31)
+            lon = lon * (180 / 2 ** 31)
+            ruta.append((lat, lon))
+
+    # Crear el mapa si hay puntos
+    if ruta:
+        mapa = folium.Map(location=ruta[0], zoom_start=14)
+
+        # Añadir la ruta
+        folium.PolyLine(ruta, color="blue", weight=4.5, opacity=0.8).add_to(mapa)
+
+        # Marcar inicio y fin
+        folium.Marker(ruta[0], popup="Inicio", icon=folium.Icon(color="green")).add_to(mapa)
+        folium.Marker(ruta[-1], popup="Fin", icon=folium.Icon(color="red")).add_to(mapa)
+
+        return mapa
+        # Guardar el mapa
+        # mapa.save("mapa_miFichero2.html")
+        # print("Mapa generado: mapa_miFichero.html")
+    else:
+        print("No se encontraron puntos GPS en el archivo .fit.")
+
+
+def analizar_fit(fichero_fit):
+    return None
 
 
 def analizar_gpx(fichero_gpx):
@@ -201,6 +242,7 @@ def prediccionNuevaRuta(desnivel_positivo, desnivel_negativo, longitud, suelo, t
     return clase
 
 
+@usuario_no_admin_requerido
 def formularioNuevaRuta(request):
     if request.method == "GET":
         if request.user.is_authenticated:
@@ -299,6 +341,7 @@ def formularioNuevaRuta(request):
                     resultados = analizar_gpx(fichero)
 
 
+@usuario_no_admin_requerido
 def mis_rutas(request):
     if request.user.is_authenticated:
         if request.method == 'GET':
@@ -308,3 +351,14 @@ def mis_rutas(request):
             return render(request, 'proyectofinalWeb/rutase.html', {"rutas": listaRutas})
     else:
         return redirect('index')
+
+
+def detalles_ruta(request, id_ruta):
+    referer = request.META.get('HTTP_REFERER', '')
+    if not referer.startswith(request.build_absolute_uri('/misRutas/')):
+        return redirect('misRutas')
+    try:
+        ruta = Rutas.objects.get(pk=id_ruta)
+        return render(request, "proyectofinalWeb/detallesRutas.html", {'idRuta': ruta.id})
+    except Rutas.DoesNotExist:
+        return render(request, "proyectofinalWeb/error_ruta_no_encontrada.html", status=404)

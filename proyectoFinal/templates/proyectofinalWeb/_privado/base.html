@@ -15,15 +15,16 @@
     <h1>Tienda y Rutas de Ciclismo</h1>
     <p>Explora, compra y planea tu próxima aventura</p>
 </header>
+
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <!--    Menu hamburguesa-->
         <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false"
                 aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse order-2" id="navbarNavDropdown">
+        {% if not user.is_superuser %}
             <ul class="navbar-nav">
                 <li class="nav-item">
                     {% if request.path == '/listaVideos/' %}
@@ -45,6 +46,7 @@
 
                 </li>
             </ul>
+        {% endif %}
             {% block despUsuario %}
             {% endblock %}
         </div>

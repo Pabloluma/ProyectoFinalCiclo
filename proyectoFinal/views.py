@@ -22,7 +22,9 @@ from django.utils.http import urlsafe_base64_encode
 
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
+from .decorator import usuario_no_admin_requerido
 from .models import Rutas, caracteristicas
 
 
@@ -151,7 +153,8 @@ def accesoAnonimo(request):
     else:
         return redirect('index')
 
-
+# Este decorador se ha declarado en el fichero decorator.py
+@usuario_no_admin_requerido
 def perfil(request):
     listaRutas = Rutas.objects.filter(idUsuario_id=request.user.id)
     listaCaract = caracteristicas.objects.filter(usuario_id_id=request.user.id)
@@ -170,8 +173,10 @@ def perfil(request):
                       {"rutas": listaRutas, "caract": listaCaract})
 
 
-# Hay que depurarlo salta un error en el javascript, revisar javascript y esta función
+# Falta que se cambie en la base de datos, ahora solo esta para los 3 tipos, implementar resto de campos
 @csrf_exempt
+# Solo permite peticiones POST
+@require_POST
 def actualizar_usuario(request):
     if request.method == 'POST':
         try:
@@ -192,15 +197,6 @@ def actualizar_usuario(request):
                     if valor == valorSelec:
                         print(f"Clave: {clave}")
                         return JsonResponse({'success': True, 'clave': clave})
-
-            # dic_bici = datos_json.get("dic_bici")
-            # if dic_bici and isinstance(dic_bici, dict):
-            #     for clave, valor in dic_bici.items():
-            #         if valor == valorSelec:
-            #             print(f"Clave: {clave}")
-            #             return JsonResponse({'success': True, 'clave': clave})
-            #         else:
-            #             return JsonResponse({'success': False}, status=400)
         except json.JSONDecodeError:
             error_message = "JSON no válido"
             print(f"Error: {error_message}")

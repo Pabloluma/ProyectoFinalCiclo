@@ -9,8 +9,11 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
+from proyectoFinal.decorator import usuario_no_admin_requerido
+
 
 # @login_required(login_url='index')
+@usuario_no_admin_requerido
 def calcular(request):
     if request.method == 'GET':
         return render(request, 'proyectofinalWeb/calcular_dureza.html')

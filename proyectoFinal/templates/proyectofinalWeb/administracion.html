@@ -18,12 +18,15 @@
                     {{ nombre }}
                 </a>
             </div>
+
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                {% if not user.is_superuser %}
                 <li><a class="dropdown-item" href="#">Perfil</a></li>
                 <li><a class="dropdown-item" href="{% url 'misRutas' %}">Mis Rutas</a></li>
                 <li>
                     <hr class="dropdown-divider">
                 </li>
+                {% endif %}
                 <li>
                     <form action="{% url 'index' %}" method="post">
                         {% csrf_token %}

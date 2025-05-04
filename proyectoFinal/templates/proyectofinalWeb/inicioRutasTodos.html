@@ -19,8 +19,10 @@
                 </a>
             </div>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                <li><a class="dropdown-item" href="{% url 'perfil' %}">Perfil</a></li>
-                <li><a class="dropdown-item" href="{% url 'misRutas' %}">Mis Rutas</a></li>
+                {% if not user.is_superuser %}
+                    <li><a class="dropdown-item" href="{% url 'perfil' %}">Perfil</a></li>
+                    <li><a class="dropdown-item" href="{% url 'misRutas' %}">Mis Rutas</a></li>
+                {% endif %}
                 {% if admin %}
                     <li><a class="dropdown-item" href={% url 'administracion' %}>Configuración</a></li>
                 {% endif %}
@@ -107,13 +109,17 @@
                                             m</strong>
                                         </div>
                                         <div class="me-md-0 me-5">
-                                            <span class="text-muted">Dureza</span> <strong
-                                                class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'media' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
+                                            <span class="text-muted">Dureza</span>
+                                            <strong class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'media' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
                                         </div>
                                     </div>
                                     <div class="mt-2 btn ">
-                                        <img src="/media/proyectoFinal/iconos/message-regular.jpg" width="16" alt=""> <small>{% if ruta.comentarios.count > 0%}{{ ruta.comentarios.count }}
-                                        comentarios</small>{% endif %}
+                                        <img src="/media/proyectoFinal/iconos/message-regular.jpg" width="16" alt="">
+                                        {% if ruta.comentarios.count > 0 %}
+                                            <small>{{ ruta.comentarios.count }} comentarios</small>
+                                        {% else %}
+                                            <small> No hay comentarios</small>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>

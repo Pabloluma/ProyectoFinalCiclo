@@ -11,7 +11,7 @@ urlpatterns = [
     path('inicio/', views.inicio, name='inicio'),
     path('misRutas/', viewsRutas.mis_rutas, name='misRutas'),
     path('misRutas/nueva', viewsRutas.formularioNuevaRuta, name='nuevaRuta'),
-
+    path('ruta/<int:id_ruta>/', viewsRutas.detalles_ruta, name='detalles_ruta'),
     path('administracion/', views.administracion, name='administracion'),
     path('durezaRuta/', viewsCalculaDureza.calcular, name='calcularDureza'),
     path('listaVideos/', viewsVideos.mostrarLista, name='listaVideos'),

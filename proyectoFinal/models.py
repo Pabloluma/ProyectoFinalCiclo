@@ -37,10 +37,10 @@ class Comentarios(models.Model):
 
 
 class caracteristicas(models.Model):
-    edad = models.PositiveIntegerField()
-    fechaNacimiento = models.DateField()
-    estatura = models.DecimalField(max_digits=3, decimal_places=2)
-    peso = models.DecimalField(max_digits=5, decimal_places=2)
+    edad = models.PositiveIntegerField(null=True, blank=True)
+    fechaNacimiento = models.DateField(null=True, blank=True)
+    estatura = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
+    peso = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     estado = models.PositiveSmallIntegerField()
     suelo = models.PositiveSmallIntegerField()
     tipo_bici = models.PositiveSmallIntegerField()
