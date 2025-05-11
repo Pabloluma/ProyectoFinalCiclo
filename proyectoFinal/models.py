@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from django.db import models
 
 # Create your models here.
 
@@ -58,3 +57,9 @@ class videos(models.Model):
     id_usuario = models.OneToOneField(User, on_delete=models.CASCADE)
     id_lista = models.ForeignKey(lista, on_delete=models.CASCADE)
 
+
+class graficoRuta(models.Model):
+    gr_pulsaciones = models.ImageField(upload_to="graficos/ppm", null=True, blank=True)
+    gr_cadencia = models.ImageField(upload_to="graficos/rpm", null=True, blank=True)
+    gr_temperatura = models.ImageField(upload_to="graficos/temperatura", null=True, blank=True)
+    id_ruta = models.OneToOneField(Rutas, on_delete=models.CASCADE, related_name="graficosRuta")

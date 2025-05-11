@@ -2,10 +2,12 @@ import io
 import json
 import os
 
+import fitparse
 import gpxpy
 import gpxpy.gpx
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.http import HttpRequest
 from geopy.distance import geodesic
 from datetime import timedelta
 from keras.src.saving import load_model
@@ -19,6 +21,7 @@ import matplotlib.pyplot as plt
 import contextily as ctx
 
 from django.shortcuts import render, redirect
+from tensorflow.python.ops.metrics_impl import false_negatives
 
 from proyectoFinal import views
 from proyectoFinal.decorator import usuario_no_admin_requerido
@@ -62,8 +65,109 @@ def obtener_mapaFit_html(archivo_fit):
         print("No se encontraron puntos GPS en el archivo .fit.")
 
 
-def analizar_fit(fichero_fit):
-    return None
+def analizar_fit(fitfile):  #(fichero_fit):
+    titulo = None
+    fecha = None
+    UMBRAL_MOVIMIENTO = 1.0  # Ajustar según necesidad (m/s)
+    distancia_total = 0.0
+    tiempo_total = timedelta(seconds=0)
+    tiempo_movimiento = timedelta(seconds=0)
+    tiempo_pausa = timedelta(seconds=0)
+    velocidad_maxima = 0.0
+    altitud_max = float('-inf')
+    altitud_min = float('inf')
+    ganancia_altitud = 0.0
+    perdida_altitud = 0.0
+    puntos = []
+
+    try:
+        # fitfile = fitparse.FitFile(fichero_fit)
+
+        # Obtener el título del archivo (si está disponible)
+        for record in fitfile.get_messages('file_id'):
+            for data in record:
+                if data.name == 'manufacturer' and titulo is None:
+                    titulo = data.value
+                elif data.name == 'product' and titulo is None:
+                    titulo = data.value
+            if titulo:
+                break
+
+        # Recopilar puntos con timestamp, latitud, longitud y altitud
+        for record in fitfile.get_messages('record'):
+            timestamp = record.get('timestamp')
+            position_lat = record.get('position_lat')
+            position_long = record.get('position_long')
+            enhanced_altitude = record.get('enhanced_altitude')
+
+            if timestamp and timestamp.value and position_lat and position_lat.value is not None and position_long and position_long.value is not None:
+                point = {
+                    'time': timestamp.value,
+                    'latitude': position_lat.value * (180.0 / 2 ** 31),  # Convertir semicircles a degrees
+                    'longitude': position_long.value * (180.0 / 2 ** 31),  # Convertir semicircles a degrees
+                    'elevation': enhanced_altitude.value if enhanced_altitude and enhanced_altitude.value is not None else None
+                }
+                puntos.append(point)
+                if fecha is None:
+                    fecha = point['time'].date()
+
+        # Simular el análisis por segmentos como en el GPX
+        if len(puntos) > 1:
+            for i in range(1, len(puntos)):
+                p1 = puntos[i - 1]
+                p2 = puntos[i]
+
+                distancia = geodesic((p1['latitude'], p1['longitude']), (p2['latitude'], p2['longitude'])).km
+                distancia_total += distancia
+
+                tiempo_transcurrido = (p2['time'] - p1['time']).total_seconds()
+                tiempo_total += timedelta(seconds=tiempo_transcurrido)
+
+                if tiempo_transcurrido > 0:
+                    velocidad = (distancia * 1000) / tiempo_transcurrido  # m/s
+                    velocidad_kmh = velocidad * 3.6  # Convertir a km/h
+
+                    if velocidad_kmh > velocidad_maxima:
+                        velocidad_maxima = velocidad_kmh
+
+                    if velocidad > UMBRAL_MOVIMIENTO:
+                        tiempo_movimiento += timedelta(seconds=tiempo_transcurrido)
+                    else:
+                        tiempo_pausa += timedelta(seconds=tiempo_transcurrido)
+
+                if p1['elevation'] is not None and p2['elevation'] is not None:
+                    altitud_max = max(altitud_max, p2['elevation'])
+                    altitud_min = min(altitud_min, p2['elevation'])
+
+                    diferencia_altitud = p2['elevation'] - p1['elevation']
+                    if diferencia_altitud > 0:
+                        ganancia_altitud += diferencia_altitud
+                    else:
+                        perdida_altitud += abs(diferencia_altitud)
+
+        velocidad_media = (distancia_total / (
+                tiempo_movimiento.total_seconds() / 3600)) if tiempo_movimiento.total_seconds() > 0 else 0
+
+        return {
+            "titulo": titulo,
+            "fecha": fecha,
+            "total_km": round(distancia_total, 2),
+            "tiempo_total": tiempo_total,
+            "tiempo_movimiento": tiempo_movimiento,
+            "tiempo_pausa": tiempo_pausa,
+            "vel_media_movimiento": round(velocidad_media, 2),
+            "velocidad_maxima": round(velocidad_maxima, 2),
+            "altitud_maxima": round(altitud_max, 2) if altitud_max != float('-inf') else None,
+            "altitud_minima": round(altitud_min, 2) if altitud_min != float('inf') else None,
+            "alt_acum_max": round(ganancia_altitud, 2),
+            "alt_acum_min": round(perdida_altitud, 2)
+        }
+
+    except FileNotFoundError:
+        # return {"error": f"El archivo '{fichero_fit}' no fue encontrado."}
+        return {"error": "El archivo no fue encontrado."}
+    except Exception as e:
+        return {"error": f"Ocurrió un error al procesar el archivo: {e}"}
 
 
 def analizar_gpx(fichero_gpx):
@@ -183,9 +287,73 @@ def generarImagenMapaGPX(fichero_gpx, rutaGuardada):
     plt.close(fig)
 
     img_buffer.seek(0)
-    imagen_file = InMemoryUploadedFile(img_buffer, None, f"i_mapa_ruta_{rutaGuardada.id}.png", 'image/png',
+    imagen_file = InMemoryUploadedFile(img_buffer, None, f"i_mapa_ruta_g_{rutaGuardada.id}.png", 'image/png',
                                        img_buffer.tell(), None)
-    rutaGuardada.imagen.save(f"proyectoFinal/i_mapa_ruta_{rutaGuardada.id}.png", imagen_file, save=True)
+    rutaGuardada.imagen.save(f"mapas/i_mapa_ruta_g_{rutaGuardada.id}.png", imagen_file, save=True)
+
+
+# def generarImagenMapaFIT(fichero_fit, rutaGuardada):
+def generarImagenMapaFIT(fitfile, rutaGuardada):
+    try:
+        # fitfile = fitparse.FitFile(fichero_fit)
+
+        coords = []
+        for record in fitfile.get_messages('record'):
+            position_lat = record.get('position_lat')
+            position_long = record.get('position_long')
+
+            if position_lat and position_lat.value is not None and position_long and position_long.value is not None:
+                lat = position_lat.value * (180.0 / 2 ** 31)
+                lon = position_long.value * (180.0 / 2 ** 31)
+                coords.append((lon, lat))
+
+        if coords:
+            # Convertir a GeoDataFrame
+            line = LineString(coords)
+            gdf = gpd.GeoDataFrame(geometry=[line], crs="EPSG:4326")
+            gdf = gdf.to_crs(epsg=3857)  # Web Mercator para contextily
+
+            # Crear imagen en memoria
+            fig, ax = plt.subplots(figsize=(10, 5))
+            gdf.plot(ax=ax, linewidth=3, color='blue')
+            ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
+
+            xmin, xmax = ax.get_xlim()
+            ancho_figura = fig.get_figwidth()  # Ancho de la figura en pulgadas
+            extension_longitud = (xmax - xmin) * (3 / ancho_figura)  # Aproximación de 3 pulgadas en longitud
+
+            xmin_extendido = xmin - extension_longitud
+            xmax_extendido = xmax + extension_longitud
+
+            # Establecer los límites extendidos del eje x
+            ax.set_xlim(xmin_extendido, xmax_extendido)
+
+            ax.axis("off")
+
+            img_buffer = io.BytesIO()
+
+            plt.savefig(img_buffer, format='png', dpi=700, bbox_inches='tight')
+            plt.close(fig)
+
+            img_buffer.seek(0)
+            imagen_file = InMemoryUploadedFile(img_buffer, None, f"i_mapa_ruta_f_{rutaGuardada.id}.png", 'image/png',
+                                               img_buffer.tell(), None)
+            rutaGuardada.imagen.save(f"mapas/i_mapa_ruta_f_{rutaGuardada.id}.png", imagen_file, save=True)
+            return imagen_file
+        else:
+            print("No se encontraron datos de latitud y longitud en el archivo .fit.")
+            return None
+
+    except FileNotFoundError:
+        print("Error: No se ha podido encontrar el Archivo")
+        return None
+    except ImportError as e:
+        print(
+            f"Error: No se pudo importar una librería necesaria: {e}. Asegúrate de tener instaladas fitparse, geopandas y contextily (pip install fitparse geopandas contextily).")
+        return None
+    except Exception as e:
+        print(f"Ocurrió un error al procesar el archivo .fit: {e}")
+        return None
 
 
 def generarMapaGPX_HTML(fichero_gpx):
@@ -294,12 +462,54 @@ def formularioNuevaRuta(request):
 
                 # Obtiene el valor del fichero seleccionado
                 fichero = request.FILES['ficheroGpxCsv']
-                fichero_leido = fichero.read().decode('utf-8')
 
                 _, extension = os.path.splitext(fichero.name)
                 extension = extension[1:].lower()
                 if extension == 'gpx':
+                    fichero_leido = fichero.read().decode('utf-8')
                     resultados = analizar_gpx(fichero_leido)
+                    ascenso_gpx = resultados.get("alt_acum_max")
+                    descenso_gpx = resultados.get("alt_acum_min")
+                    longitud_gpx = resultados.get("total_km")
+                    # El suelo hay que cogerlo de la tabla caracteristicas usuario
+                    suelo_gpx = '1'
+                    # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+                    tipo_bici_gpx = '1'
+                    # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+                    estado_gpx = '1'
+                    pred = prediccionNuevaRuta(desnivel_positivo=ascenso_gpx, desnivel_negativo=descenso_gpx,
+                                               longitud=longitud_gpx, suelo=suelo_gpx, tipo_bici=tipo_bici_gpx,
+                                               estado=estado_gpx)
+
+                    ruta_GPX = Rutas(
+                        titulo=resultados.get("titulo"),
+                        fecha=str(resultados.get("fecha")),
+                        tiempo=str(resultados.get("tiempo_movimiento")),
+                        distancia=resultados.get("total_km"),
+                        velocidad=resultados.get("vel_media_movimiento"),
+                        ascenso=resultados.get("alt_acum_max"),
+                        descenso=resultados.get("alt_acum_min"),
+                        dureza=pred,
+                        idUsuario=request.user
+                    )
+                    ruta_GPX.save()
+                    rutaGuardada = Rutas.objects.get(id=ruta_GPX.id)
+                    try:
+                        generarImagenMapaGPX(fichero_leido, rutaGuardada)
+                        # request.session['dato'] = 'gpx'
+                    except:
+                        print("No se ha podido generar mapa")
+                        mapa = None
+                    return redirect('misRutas')
+
+                # elif fichero.split('.')[1] == 'csv':
+                #
+                #     # Hay que crear un nuevo metodo que llame a analizar csv
+                #
+                #     resultados = analizar_gpx(fichero)
+                elif extension == 'fit':
+                    fitfile = fitparse.FitFile(fichero)
+                    resultados = analizar_fit(fitfile)
                     ascenso_gpx = resultados.get("alt_acum_max")
                     descenso_gpx = resultados.get("alt_acum_min")
                     longitud_gpx = resultados.get("total_km")
@@ -328,17 +538,12 @@ def formularioNuevaRuta(request):
                     ruta_GPX.save()
                     rutaGuardada = Rutas.objects.get(id=ruta_GPX.id)
                     try:
-                        generarImagenMapaGPX(fichero_leido, rutaGuardada)
+                        generarImagenMapaFIT(fitfile, rutaGuardada)
+                        # request.session['dato'] = 'fit'
                     except:
                         print("No se ha podido generar mapa")
                         mapa = None
                     return redirect('misRutas')
-
-                elif fichero.split('.')[1] == 'csv':
-
-                    # Hay que crear un nuevo metodo que llame a analizar csv
-
-                    resultados = analizar_gpx(fichero)
 
 
 @usuario_no_admin_requerido
@@ -348,6 +553,15 @@ def mis_rutas(request):
             listaRutas = Rutas.objects.filter(idUsuario=request.user.id).prefetch_related("comentarios")
             for r in listaRutas:
                 r.diferencia = views.diferenciaTiempo(r.fechaSubida)
+                encontrado = False
+                if r.imagen:
+                    nombre_completo = r.imagen.url.split('/')[-1]
+                    partes_nombre = nombre_completo.split('_')
+                    for i in partes_nombre:
+                        if i == 'f':
+                            encontrado = True
+                            break
+                    r.con_f = encontrado
             return render(request, 'proyectofinalWeb/rutase.html', {"rutas": listaRutas})
     else:
         return redirect('index')
