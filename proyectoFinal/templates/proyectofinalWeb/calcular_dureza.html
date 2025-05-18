@@ -46,7 +46,9 @@
                 <div class="card shadow">
                     <div class="card-body">
                         <h1 class="card-title text-center mb-4">Diseña tu ruta</h1>
-                        <form action="{% url 'calcularDureza' %}" method="post">
+                        {#                        <form action="{% url 'calcularDureza' %}" method="post">#}
+                        {#                            {% csrf_token %}#}
+                        <form id="formDureza" method="post">
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label for="desnivel_positivo" class="form-label">Desnivel Positivo (m):</label>
@@ -99,4 +101,54 @@
 
 {% block js %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (const cookie of cookies) {
+                    const trimmed = cookie.trim();
+                    if (trimmed.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(trimmed.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        document.querySelector('#formDureza').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const form = this;
+            const formData = new FormData(form);
+
+            fetch("{% url 'calcularDureza' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Error en la predicción");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    Swal.fire({
+                        title: 'Resultado de la predicción',
+                        text: `${data.clase}`,
+                        icon: 'info',
+                        confirmButtonText: 'Aceptar'
+                    }).then(() => {
+                        form.reset();
+                    });
+                })
+                .catch(error => {
+                    console.error(error);
+                    Swal.fire('Error', 'Hubo un problema al procesar los datos.', 'error');
+                });
+        });
+    </script>
 {% endblock %}

@@ -63,7 +63,8 @@ def obtenerPerfil_Fit(fitfile, rutaGuardada):
 
         if distances and altitudes:
             plt.figure(figsize=(16, 5), facecolor="white")
-
+            plt.xlabel("Distancia (km)", fontsize=12)
+            plt.ylabel("Altitud (m)", fontsize=12)
             plt.fill_between(distances, altitudes, color='lightgreen', alpha=0.6)
             plt.plot(distances, altitudes, color='green', linewidth=1.2)
 
@@ -83,7 +84,8 @@ def obtenerPerfil_Fit(fitfile, rutaGuardada):
             img_buffer.seek(0)
             imagen_file = InMemoryUploadedFile(img_buffer, None, f"perfil_{rutaGuardada.id}.png", 'image/png',
                                                img_buffer.tell(), None)
-            graficoRuta.gr_perfil.save(f"perfil_{rutaGuardada.id}.png", imagen_file, save=True)
+
+            rutaGuardada.graficosRuta.gr_perfil.save(f"perfil_{rutaGuardada.id}.png", imagen_file, save=True)
             return imagen_file
         else:
             print("No se encontraron datos suficientes de posición y altitud en el archivo.")
@@ -477,6 +479,104 @@ def prediccionNuevaRuta(desnivel_positivo, desnivel_negativo, longitud, suelo, t
     return clase
 
 
+def obtenerRitmos_Fit(fitfile, rutaGuardada):
+    try:
+        distancias = []
+        ritmos_cardiacos = []
+        cadencias = []
+        temperaturas = []
+
+        distancia_acumulada = 0.0
+
+        for record in fitfile.get_messages('record'):
+            distancia = record.get('distance')
+            ritmo_cardiaco = record.get('heart_rate')
+            cadencia = record.get('cadence')
+            temperatura = record.get('temperature')
+
+            if distancia and distancia.value is not None:
+                distancia_acumulada = distancia.value / 1000.0  # distancia en km
+                distancias.append(distancia_acumulada)
+
+                if ritmo_cardiaco and ritmo_cardiaco.value is not None:
+                    ritmos_cardiacos.append(ritmo_cardiaco.value)
+                else:
+                    ritmos_cardiacos.append(None)
+
+                if cadencia and cadencia.value is not None:
+                    cadencias.append(cadencia.value)
+                else:
+                    cadencias.append(None)
+
+                if temperatura and temperatura.value is not None:
+                    temperaturas.append(temperatura.value)
+                else:
+                    temperaturas.append(None)
+
+        # Gráfico de ritmo cardíaco
+        plt.figure(figsize=(10, 5))
+        plt.plot(distancias, ritmos_cardiacos, label='Ritmo Cardíaco (bpm)')
+        plt.xlabel('Distancia (km)')
+        plt.ylabel('Ritmo Cardíaco (bpm)')
+        plt.title('Ritmo Cardíaco por Distancia')
+        plt.legend()
+        plt.grid(True)
+        # Personalización del eje x
+        max_distancia = max(distancias)
+        ticks = np.arange(0, max_distancia + 10, 10)  # Crear ticks de 10 en 10
+        plt.xticks(ticks)
+        # plt.savefig("frecCard.png", dpi=300)
+        # plt.show()
+        # Guardar en memoria
+        img_buffer = io.BytesIO()
+        plt.savefig(img_buffer, format='png', dpi=300, bbox_inches='tight')
+        img_buffer.seek(0)
+        imagen_file = InMemoryUploadedFile(img_buffer, None, f"ppm_{rutaGuardada.id}.png", 'image/png',
+                                           img_buffer.tell(), None)
+        rutaGuardada.graficosRuta.gr_pulsaciones.save(f"ppm_{rutaGuardada.id}.png", imagen_file, save=True)
+        plt.close()
+
+        # Gráfico de cadencia
+        plt.figure(figsize=(10, 5))
+        plt.plot(distancias, cadencias, label='Cadencia (rpm)')
+        plt.xlabel('Distancia (km)')
+        plt.ylabel('Cadencia (rpm)')
+        plt.title('Cadencia por Distancia')
+        plt.legend()
+        plt.grid(True)
+        # Personalización del eje x
+        plt.xticks(ticks)
+        # plt.show()
+        img_buffer = io.BytesIO()
+        plt.savefig(img_buffer, format='png', dpi=300, bbox_inches='tight')
+        img_buffer.seek(0)
+        imagen_file = InMemoryUploadedFile(img_buffer, None, f"rpm_{rutaGuardada.id}.png", 'image/png',
+                                           img_buffer.tell(), None)
+        rutaGuardada.graficosRuta.gr_cadencia.save(f"rpm_{rutaGuardada.id}.png", imagen_file, save=True)
+        plt.close()
+
+        # Gráfico de temperatura
+        plt.figure(figsize=(10, 5))
+        plt.plot(distancias, temperaturas, label='Temperatura (°C)')
+        plt.xlabel('Distancia (km)')
+        plt.ylabel('Temperatura (°C)')
+        plt.title('Temperatura por Distancia')
+        plt.legend()
+        plt.grid(True)
+        plt.xticks(ticks)
+        # plt.show()
+        img_buffer = io.BytesIO()
+        plt.savefig(img_buffer, format='png', dpi=300, bbox_inches='tight')
+        img_buffer.seek(0)
+        imagen_file = InMemoryUploadedFile(img_buffer, None, f"temperatura_{rutaGuardada.id}.png", 'image/png',
+                                           img_buffer.tell(), None)
+        rutaGuardada.graficosRuta.gr_temperatura.save(f"temperatura_{rutaGuardada.id}.png", imagen_file, save=True)
+        plt.close()
+
+    except Exception as e:
+        print(f"Error al procesar el archivo: {e}")
+
+
 @usuario_no_admin_requerido
 def formularioNuevaRuta(request):
     if request.method == "GET":
@@ -604,6 +704,7 @@ def formularioNuevaRuta(request):
                         generarImagenMapaFIT(fitfile, rutaGuardada)
                         obtener_mapaFit_html(fitfile, rutaGuardada)
                         obtenerPerfil_Fit(fitfile, rutaGuardada)
+                        obtenerRitmos_Fit(fitfile, rutaGuardada)
                     except:
                         print("No se ha podido generar mapa")
                         mapa = None

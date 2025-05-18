@@ -4,7 +4,17 @@
 
 
 {% block title %} Inicio {% endblock %}
-
+{% block estilos %}
+    <style>
+    #btnEliminar{
+        color: white;
+        background-color: red;
+    }
+    #btnEliminar:hover{
+        color: white;
+        background-color: #ac0606;
+    }
+    </style> {% endblock %}
 {% block despUsuario %}
     <ul class="navbar-nav ms-auto">
         <li class="nav-item dropdown">
@@ -54,10 +64,24 @@
                                     <p class="text-muted mb-0"
                                        style="font-size: 0.85rem;">{{ ruta.diferencia }}</p>
                                 </div>
-                                <div class="text-end">
-                                    <a href="">
+                                <div class="text-end dropdown">
+                                    <a class="nav-link" href="#" id="rutaDropdown{{ ruta.id }}" role="button"
+                                       data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         <img src="{% static 'img/ellipsis-v-solid.svg' %}" alt="3puntos" width="3%">
                                     </a>
+                                    <div class="dropdown-menu dropdown-menu-end"
+                                         aria-labelledby="rutaDropdown{{ ruta.id }}">
+
+                                        <form action="#" method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="publico" value="{% if ruta.publico %}False{% else %}True{% endif %}">
+                                            <button type="submit" class="dropdown-item">{% if ruta.publico %}Hacer Privado{% else %}Hacer Público{% endif %}</button>
+                                        </form>
+                                        <form action="#" method="post">
+                                            {% csrf_token %}
+                                            <button id="btnEliminar" type="submit" class="dropdown-item">Eliminar</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                             {% if ruta.imagen %}
@@ -70,15 +94,15 @@
                             <div class="col-md-8">
                                 <div class="card-body">
                                     {% comment %}{% if ruta.tipoFichero == 'F' %}{% endcomment %}
-                                        <a href="{% url 'detalles_ruta' id_ruta=ruta.id %}"
-                                           class="text-decoration-none card-link-wrapper text-dark">
-                               {% comment %}     {% endif %}{% endcomment %}
-                                    <h5 class="card-title d-flex align-items-center">
-                                        {{ ruta.titulo }}
-                                    </h5>
-                                   {% comment %} {% if ruta.tipoFichero == 'F' %}{% endcomment %}
-                                        </a>
-                                   {% comment %} {% endif %}{% endcomment %}
+                                    <a href="{% url 'detalles_ruta' id_ruta=ruta.id %}"
+                                       class="text-decoration-none card-link-wrapper text-dark">
+                                        {% comment %}     {% endif %}{% endcomment %}
+                                        <h5 class="card-title d-flex align-items-center">
+                                            {{ ruta.titulo }}
+                                        </h5>
+                                        {% comment %} {% if ruta.tipoFichero == 'F' %}{% endcomment %}
+                                    </a>
+                                    {% comment %} {% endif %}{% endcomment %}
                                     <p class="card-text text-muted mb-2">{{ ruta.fecha }}</p>
                                     <div class="d-flex flex-wrap">
                                         <div class="me-3">
