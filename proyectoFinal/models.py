@@ -17,6 +17,7 @@ class Rutas(models.Model):
     imagen = models.ImageField(upload_to="proyectoFinal", null=True, blank=True)
     publico = models.BooleanField(default=False)
     fechaSubida = models.DateTimeField(auto_now_add=True)
+    tipoFichero = models.CharField(max_length=1, null=True, blank=True)
     # imagen = models.CharField(max_length=100, blank=True, null=True)
     idUsuario = models.ForeignKey(User, on_delete=models.CASCADE)
 
@@ -59,7 +60,9 @@ class videos(models.Model):
 
 
 class graficoRuta(models.Model):
-    gr_pulsaciones = models.ImageField(upload_to="graficos/ppm", null=True, blank=True)
-    gr_cadencia = models.ImageField(upload_to="graficos/rpm", null=True, blank=True)
-    gr_temperatura = models.ImageField(upload_to="graficos/temperatura", null=True, blank=True)
+    mapa_interac = models.FileField(upload_to="detalleRuta/mapahtml", null=True, blank=True)
+    gr_perfil = models.ImageField(upload_to="detalleRuta/perfil", null=True, blank=True)
+    gr_pulsaciones = models.ImageField(upload_to="detalleRuta/ppm", null=True, blank=True)
+    gr_cadencia = models.ImageField(upload_to="detalleRuta/rpm", null=True, blank=True)
+    gr_temperatura = models.ImageField(upload_to="detalleRuta/temperatura", null=True, blank=True)
     id_ruta = models.OneToOneField(Rutas, on_delete=models.CASCADE, related_name="graficosRuta")

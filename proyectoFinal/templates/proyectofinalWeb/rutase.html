@@ -47,94 +47,106 @@
         <div class="row row-cols-1 row-cols-md-1 g-4">
             <div class="col">
                 {% for ruta in rutas %}
-                    {% if ruta.con_f %}
-                        <a href="{% url 'detalles_ruta' id_ruta=ruta.id %}"
-                           class="text-decoration-none card-link-wrapper text-dark">
-                    {% endif %}
-                <div class="card shadow-lg border rounded-4 mb-4" id="tarjeta_{{ ruta.id }}">
-                    <div class="row g-0">
-                        <div class="col-md-12 p-3 d-flex align-items-center">
-                            <div>
-                                <p class="text-muted mb-0"
-                                   style="font-size: 0.85rem;">{{ ruta.diferencia }}</p>
-                            </div>
-                        </div>
-                        {% if ruta.imagen %}
-                            <div class="col-md-4 col-9 mx-auto">
-                                <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}" alt="imagen"
-                                     class="w-100 rounded-start"
-                                     style="border: none; border-radius: 15px 0 0 15px;">
-                            </div>
-                        {% endif %}
-                        <div class="col-md-8">
-                            <div class="card-body">
-                                <h5 class="card-title d-flex align-items-center">
-                                    {{ ruta.titulo }}
-                                </h5>
-                                <p class="card-text text-muted mb-2">{{ ruta.fecha }}</p>
-                                <div class="d-flex flex-wrap">
-                                    <div class="me-3">
-                                        <span class="text-muted">Tiempo</span> <strong>
-                                        {% if  ruta.tiempo.hour  > 0 %}
-                                            {{ ruta.tiempo.hour }}h
-                                        {% endif %}
-                                        {% if ruta.tiempo.minute > 0 %}
-                                            {% if ruta.tiempo.hour > 0 %} : {% endif %}
-                                            {{ ruta.tiempo.minute }}min
-                                        {% endif %}
-                                        {% if ruta.tiempo.second > 0 %}
-                                            {% if ruta.tiempo.hour > 0 or ruta.tiempo.minute > 0 %} :
-                                            {% endif %}
-                                            {{ ruta.tiempo.second }}s
-                                        {% endif %}
-                                    </strong>
-                                    </div>
-                                    <div class="me-3">
-                                        <span class="text-muted">Distancia</span>
-                                        <strong>{{ ruta.distancia }}
-                                            km</strong>
-                                    </div>
-                                    <div class="me-3">
-                                        <span class="text-muted">Velocidad</span>
-                                        <strong>{{ ruta.velocidad }}
-                                            km/h</strong>
-                                    </div>
-                                    <div class="me-3">
-                                        <span class="text-muted">Ascenso</span>
-                                        <strong>{{ ruta.ascenso }}
-                                            m</strong>
-                                    </div>
-                                    <div class="me-3">
-                                        <span class="text-muted">Descenso</span>
-                                        <strong>{{ ruta.descenso }}
-                                            m</strong>
-                                    </div>
-                                    <div class="me-3">
-                                        <span class="text-muted">Visibilidad</span>
-                                        <strong>{{ ruta.publico|yesno:"Público,Privado" }}</strong>
-                                    </div>
-                                    <div class="me-md-0 me-5">
-                                        <span class="text-muted">Dureza</span> <strong
-                                            class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'media' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
-                                    </div>
+                    <div class="card shadow-lg border rounded-4 mb-4" id="tarjeta_{{ ruta.id }}">
+                        <div class="row g-0">
+                            <div class="col-md-12 p-3 d-flex align-items-center space-between">
+                                <div class="w-100">
+                                    <p class="text-muted mb-0"
+                                       style="font-size: 0.85rem;">{{ ruta.diferencia }}</p>
                                 </div>
-                                <div class="mt-2 btn ">
-                                    <img src="/media/proyectoFinal/iconos/message-regular.jpg"
-                                         width="16"
-                                         alt="comentarios">
-                                    {% if ruta.comentarios.count > 0 %}
-                                        {{ ruta.comentarios.count }} comentarios</small>
-                                    {% elif ruta.comentarios.count == 0 %}
-                                        <small>No hay comentarios</small>
-                                    {% endif %}
+                                <div class="text-end">
+                                    <a href="">
+                                        <img src="{% static 'img/ellipsis-v-solid.svg' %}" alt="3puntos" width="3%">
+                                    </a>
+                                </div>
+                            </div>
+                            {% if ruta.imagen %}
+                                <div class="col-md-4 col-9 mx-auto">
+                                    <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}" alt="imagen"
+                                         class="w-100 rounded-start"
+                                         style="border: none; border-radius: 15px 0 0 15px;">
+                                </div>
+                            {% endif %}
+                            <div class="col-md-8">
+                                <div class="card-body">
+                                    {% comment %}{% if ruta.tipoFichero == 'F' %}{% endcomment %}
+                                        <a href="{% url 'detalles_ruta' id_ruta=ruta.id %}"
+                                           class="text-decoration-none card-link-wrapper text-dark">
+                               {% comment %}     {% endif %}{% endcomment %}
+                                    <h5 class="card-title d-flex align-items-center">
+                                        {{ ruta.titulo }}
+                                    </h5>
+                                   {% comment %} {% if ruta.tipoFichero == 'F' %}{% endcomment %}
+                                        </a>
+                                   {% comment %} {% endif %}{% endcomment %}
+                                    <p class="card-text text-muted mb-2">{{ ruta.fecha }}</p>
+                                    <div class="d-flex flex-wrap">
+                                        <div class="me-3">
+                                            <span class="text-muted">Tiempo</span> <strong>
+                                            {% if  ruta.tiempo.hour  > 0 %}
+                                                {{ ruta.tiempo.hour }}h
+                                            {% endif %}
+                                            {% if ruta.tiempo.minute > 0 %}
+                                                {% if ruta.tiempo.hour > 0 %} : {% endif %}
+                                                {{ ruta.tiempo.minute }}min
+                                            {% endif %}
+                                            {% if ruta.tiempo.second > 0 %}
+                                                {% if ruta.tiempo.hour > 0 or ruta.tiempo.minute > 0 %} :
+                                                {% endif %}
+                                                {{ ruta.tiempo.second }}s
+                                            {% endif %}
+                                        </strong>
+                                        </div>
+                                        <div class="me-3">
+                                            <span class="text-muted">Distancia</span>
+                                            <strong>{{ ruta.distancia }}
+                                                km</strong>
+                                        </div>
+                                        <div class="me-3">
+                                            <span class="text-muted">Velocidad</span>
+                                            <strong>{{ ruta.velocidad }}
+                                                km/h</strong>
+                                        </div>
+                                        <div class="me-3">
+                                            <span class="text-muted">Ascenso</span>
+                                            <strong>{{ ruta.ascenso }}
+                                                m</strong>
+                                        </div>
+                                        <div class="me-3">
+                                            <span class="text-muted">Descenso</span>
+                                            <strong>{{ ruta.descenso }}
+                                                m</strong>
+                                        </div>
+                                        <div class="me-3">
+                                            <span class="text-muted">Visibilidad</span>
+                                            <strong>{{ ruta.publico|yesno:"Público,Privado" }}</strong>
+                                        </div>
+                                        <div class="me-md-0 me-5">
+                                            <span class="text-muted">Dureza</span> <strong
+                                                class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'media' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 ">
+                                        {% if ruta.comentarios.count > 0 %}
+                                            <a href="{% url 'detalles_ruta' id_ruta=ruta.id %}#comentarios"
+                                               class="text-decoration-none text-dark d-flex align-items-center">
+                                                <img src="{% static '/img/message-regular.jpg' %}"
+                                                     width="16"
+                                                     alt="comentarios">
+                                                {{ ruta.comentarios.count }} comentarios</small>
+                                            </a>
+                                        {% elif ruta.comentarios.count == 0 %}
+                                            <img src="{% static '/img/message-regular.jpg' %}"
+                                                 width="16"
+                                                 alt="comentarios">
+                                            <small>No hay comentarios</small>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-               {% if ruta.con_f %}
-                    </a>
-                {% endif %}
+
                 {% empty %}
                     <div class="card shadow-lg border rounded-4 mb-4">
                         <div class="row g-0">

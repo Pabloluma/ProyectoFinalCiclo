@@ -7,7 +7,6 @@ import gpxpy
 import gpxpy.gpx
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.http import HttpRequest
 from geopy.distance import geodesic
 from datetime import timedelta
 from keras.src.saving import load_model
@@ -21,19 +20,81 @@ import matplotlib.pyplot as plt
 import contextily as ctx
 
 from django.shortcuts import render, redirect
-from tensorflow.python.ops.metrics_impl import false_negatives
 
 from proyectoFinal import views
 from proyectoFinal.decorator import usuario_no_admin_requerido
-from proyectoFinal.models import Rutas
+from proyectoFinal.models import Rutas, graficoRuta
 
-from fitparse import FitFile
 import folium
 
+from tempfile import NamedTemporaryFile
+from django.core.files import File
 
-def obtener_mapaFit_html(archivo_fit):
-    fitfile = FitFile(archivo_fit)
 
+def obtenerPerfil_Fit(fitfile, rutaGuardada):
+    try:
+        altitudes = []
+        distances = []
+        total_distance = 0
+        previous_latitude = None
+        previous_longitude = None
+
+        # Iterar a través de los registros que contienen información de posición
+        for record in fitfile.get_messages('record'):
+            timestamp = record.get('timestamp')
+            position_lat = record.get('position_lat')
+            position_long = record.get('position_long')
+            enhanced_altitude = record.get('enhanced_altitude')
+
+            if timestamp and timestamp.value and position_lat and position_lat.value is not None and position_long and position_long.value is not None and enhanced_altitude and enhanced_altitude.value is not None:
+                lat = position_lat.value * (180.0 / 2 ** 31)
+                lon = position_long.value * (180.0 / 2 ** 31)
+                alt = enhanced_altitude.value
+
+                if previous_latitude is not None and previous_longitude is not None:
+                    from geopy.distance import geodesic
+                    distance = geodesic((previous_latitude, previous_longitude), (lat, lon)).km
+                    total_distance += distance
+
+                altitudes.append(alt)
+                distances.append(total_distance)
+                previous_latitude = lat
+                previous_longitude = lon
+
+        if distances and altitudes:
+            plt.figure(figsize=(16, 5), facecolor="white")
+
+            plt.fill_between(distances, altitudes, color='lightgreen', alpha=0.6)
+            plt.plot(distances, altitudes, color='green', linewidth=1.2)
+
+            # Personalizar la gráfica
+            plt.grid(color='lightgray', linestyle='--', linewidth=0.5)
+            # Ajustar la gráfica a los ejes
+            plt.xlim(min(distances), max(distances))
+            plt.ylim(bottom=0)
+
+            plt.xticks(fontsize=10)
+            plt.yticks(fontsize=10)
+
+            img_buffer = io.BytesIO()
+
+            plt.savefig(img_buffer, format='png', dpi=700, bbox_inches='tight')
+
+            img_buffer.seek(0)
+            imagen_file = InMemoryUploadedFile(img_buffer, None, f"perfil_{rutaGuardada.id}.png", 'image/png',
+                                               img_buffer.tell(), None)
+            graficoRuta.gr_perfil.save(f"perfil_{rutaGuardada.id}.png", imagen_file, save=True)
+            return imagen_file
+        else:
+            print("No se encontraron datos suficientes de posición y altitud en el archivo.")
+
+    except FileNotFoundError:
+        print("Error: El archivo  no fue encontrado.")
+    except Exception as e:
+        print(f"Ocurrió un error al procesar el archivo: {e}")
+
+
+def obtener_mapaFit_html(fitfile, rutaGuardada):
     # Extraer puntos GPS
     ruta = []
     for record in fitfile.get_messages("record"):
@@ -57,15 +118,23 @@ def obtener_mapaFit_html(archivo_fit):
         folium.Marker(ruta[0], popup="Inicio", icon=folium.Icon(color="green")).add_to(mapa)
         folium.Marker(ruta[-1], popup="Fin", icon=folium.Icon(color="red")).add_to(mapa)
 
-        return mapa
+        # return mapa
         # Guardar el mapa
         # mapa.save("mapa_miFichero2.html")
         # print("Mapa generado: mapa_miFichero.html")
+        with NamedTemporaryFile(suffix=".html", delete=False) as temp_file:
+            mapa.save(temp_file.name)
+            temp_file.seek(0)
+
+            # Asociar al modelo
+            grafico = graficoRuta(id_ruta=rutaGuardada)  # Asumiendo que tienes la ruta
+            grafico.mapa_interac.save(f"mapa_ruta_{rutaGuardada.id}.html", File(temp_file))
+            grafico.save()
     else:
         print("No se encontraron puntos GPS en el archivo .fit.")
 
 
-def analizar_fit(fitfile):  #(fichero_fit):
+def analizar_fit(fitfile):  # (fichero_fit):
     titulo = None
     fecha = None
     UMBRAL_MOVIMIENTO = 1.0  # Ajustar según necesidad (m/s)
@@ -289,7 +358,7 @@ def generarImagenMapaGPX(fichero_gpx, rutaGuardada):
     img_buffer.seek(0)
     imagen_file = InMemoryUploadedFile(img_buffer, None, f"i_mapa_ruta_g_{rutaGuardada.id}.png", 'image/png',
                                        img_buffer.tell(), None)
-    rutaGuardada.imagen.save(f"mapas/i_mapa_ruta_g_{rutaGuardada.id}.png", imagen_file, save=True)
+    rutaGuardada.imagen.save(f"mapas/i_mapa_ruta_{rutaGuardada.id}.png", imagen_file, save=True)
 
 
 # def generarImagenMapaFIT(fichero_fit, rutaGuardada):
@@ -338,7 +407,7 @@ def generarImagenMapaFIT(fitfile, rutaGuardada):
             img_buffer.seek(0)
             imagen_file = InMemoryUploadedFile(img_buffer, None, f"i_mapa_ruta_f_{rutaGuardada.id}.png", 'image/png',
                                                img_buffer.tell(), None)
-            rutaGuardada.imagen.save(f"mapas/i_mapa_ruta_f_{rutaGuardada.id}.png", imagen_file, save=True)
+            rutaGuardada.imagen.save(f"mapas/i_mapa_ruta_{rutaGuardada.id}.png", imagen_file, save=True)
             return imagen_file
         else:
             print("No se encontraron datos de latitud y longitud en el archivo .fit.")
@@ -375,8 +444,6 @@ def generarMapaGPX_HTML(fichero_gpx):
     folium.Marker(ruta[-1], popup="Fin", icon=folium.Icon(color="red")).add_to(mapa)
 
     return mapa
-    # Guardar el mapa en un archivo HTML
-    # mapa.save("mapa_ruta.html")
 
 
 def prediccionNuevaRuta(desnivel_positivo, desnivel_negativo, longitud, suelo, tipo_bici, estado):
@@ -489,6 +556,7 @@ def formularioNuevaRuta(request):
                         velocidad=resultados.get("vel_media_movimiento"),
                         ascenso=resultados.get("alt_acum_max"),
                         descenso=resultados.get("alt_acum_min"),
+                        tipoFichero='G',
                         dureza=pred,
                         idUsuario=request.user
                     )
@@ -496,17 +564,11 @@ def formularioNuevaRuta(request):
                     rutaGuardada = Rutas.objects.get(id=ruta_GPX.id)
                     try:
                         generarImagenMapaGPX(fichero_leido, rutaGuardada)
-                        # request.session['dato'] = 'gpx'
                     except:
                         print("No se ha podido generar mapa")
                         mapa = None
                     return redirect('misRutas')
 
-                # elif fichero.split('.')[1] == 'csv':
-                #
-                #     # Hay que crear un nuevo metodo que llame a analizar csv
-                #
-                #     resultados = analizar_gpx(fichero)
                 elif extension == 'fit':
                     fitfile = fitparse.FitFile(fichero)
                     resultados = analizar_fit(fitfile)
@@ -532,6 +594,7 @@ def formularioNuevaRuta(request):
                         ascenso=resultados.get("alt_acum_max"),
                         descenso=resultados.get("alt_acum_min"),
                         dureza=pred,
+                        tipoFichero='F',
                         # imagen=mapa,
                         idUsuario=request.user
                     )
@@ -539,7 +602,8 @@ def formularioNuevaRuta(request):
                     rutaGuardada = Rutas.objects.get(id=ruta_GPX.id)
                     try:
                         generarImagenMapaFIT(fitfile, rutaGuardada)
-                        # request.session['dato'] = 'fit'
+                        obtener_mapaFit_html(fitfile, rutaGuardada)
+                        obtenerPerfil_Fit(fitfile, rutaGuardada)
                     except:
                         print("No se ha podido generar mapa")
                         mapa = None
@@ -550,18 +614,10 @@ def formularioNuevaRuta(request):
 def mis_rutas(request):
     if request.user.is_authenticated:
         if request.method == 'GET':
-            listaRutas = Rutas.objects.filter(idUsuario=request.user.id).prefetch_related("comentarios")
+            listaRutas = Rutas.objects.filter(idUsuario=request.user.id).prefetch_related("comentarios").order_by(
+                "fechaSubida").reverse()
             for r in listaRutas:
                 r.diferencia = views.diferenciaTiempo(r.fechaSubida)
-                encontrado = False
-                if r.imagen:
-                    nombre_completo = r.imagen.url.split('/')[-1]
-                    partes_nombre = nombre_completo.split('_')
-                    for i in partes_nombre:
-                        if i == 'f':
-                            encontrado = True
-                            break
-                    r.con_f = encontrado
             return render(request, 'proyectofinalWeb/rutase.html', {"rutas": listaRutas})
     else:
         return redirect('index')
@@ -573,6 +629,8 @@ def detalles_ruta(request, id_ruta):
         return redirect('misRutas')
     try:
         ruta = Rutas.objects.get(pk=id_ruta)
-        return render(request, "proyectofinalWeb/detallesRutas.html", {'idRuta': ruta.id})
+        listaComentarios = ruta.comentarios.all()
+        return render(request, "proyectofinalWeb/detallesRutas.html",
+                      {'rutaSelec': ruta, 'listaComentarios': listaComentarios})
     except Rutas.DoesNotExist:
         return render(request, "proyectofinalWeb/error_ruta_no_encontrada.html", status=404)
