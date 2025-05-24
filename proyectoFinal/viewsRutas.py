@@ -23,12 +23,14 @@ from django.shortcuts import render, redirect
 
 from proyectoFinal import views
 from proyectoFinal.decorator import usuario_no_admin_requerido
-from proyectoFinal.models import Rutas, graficoRuta
+from proyectoFinal.models import Rutas, graficoRuta, caracteristicas
 
 import folium
 
 from tempfile import NamedTemporaryFile
 from django.core.files import File
+
+from geopy.distance import geodesic
 
 
 def obtenerPerfil_Fit(fitfile, rutaGuardada):
@@ -52,7 +54,6 @@ def obtenerPerfil_Fit(fitfile, rutaGuardada):
                 alt = enhanced_altitude.value
 
                 if previous_latitude is not None and previous_longitude is not None:
-                    from geopy.distance import geodesic
                     distance = geodesic((previous_latitude, previous_longitude), (lat, lon)).km
                     total_distance += distance
 
@@ -337,7 +338,7 @@ def generarImagenMapaGPX(fichero_gpx, rutaGuardada):
 
     # Crear imagen en memoria
     fig, ax = plt.subplots(figsize=(10, 5))
-    gdf.plot(ax=ax, linewidth=3, color='blue')
+    gdf.plot(ax=ax, linewidth=2, color='blue')
     ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
 
     xmin, xmax = ax.get_xlim()
@@ -386,7 +387,7 @@ def generarImagenMapaFIT(fitfile, rutaGuardada):
 
             # Crear imagen en memoria
             fig, ax = plt.subplots(figsize=(10, 5))
-            gdf.plot(ax=ax, linewidth=3, color='blue')
+            gdf.plot(ax=ax, linewidth=2, color='blue')
             ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
 
             xmin, xmax = ax.get_xlim()
@@ -598,11 +599,24 @@ def formularioNuevaRuta(request):
             descenso = request.POST.get('descenso')
             visibilidad = request.POST.get('visibilidad')
             # El suelo hay que cogerlo de la tabla caracteristicas usuario
-            suelo_usuario = '1'
-            # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
-            tipo_bici_usuario = '1'
-            # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
-            estado_usuario = '1'
+            # suelo_usuario = '1'
+            # # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+            # tipo_bici_usuario = '1'
+            # # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+            # estado_usuario = '1'
+            caracteristicasUsuario = caracteristicas.objects.all()
+            if caracteristicasUsuario:
+                suelo_usuario = caracteristicasUsuario.get("suelo")
+                # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+                tipo_bici_usuario = caracteristicasUsuario.get("tipo_bici")
+                # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+                estado_usuario = caracteristicasUsuario.get("estado")
+            else:
+                suelo_usuario = '1'
+                # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+                tipo_bici_usuario = '1'
+                # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+                estado_usuario = '1'
             pred_manual = prediccionNuevaRuta(desnivel_positivo=ascenso, desnivel_negativo=descenso,
                                               longitud=distancia, suelo=suelo_usuario, tipo_bici=tipo_bici_usuario,
                                               estado=estado_usuario)
@@ -615,7 +629,9 @@ def formularioNuevaRuta(request):
                 ascenso=ascenso,
                 descenso=descenso,
                 dureza=pred_manual,
-                publico=True if pred_manual == '1' else False,
+                tipoFichero='M',
+                # publico=True if pred_manual == '1' else False,
+                publico=True if visibilidad == '1' else False,
                 idUsuario=request.user
             )
             ruta.save()
@@ -639,11 +655,24 @@ def formularioNuevaRuta(request):
                     descenso_gpx = resultados.get("alt_acum_min")
                     longitud_gpx = resultados.get("total_km")
                     # El suelo hay que cogerlo de la tabla caracteristicas usuario
-                    suelo_gpx = '1'
-                    # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
-                    tipo_bici_gpx = '1'
-                    # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
-                    estado_gpx = '1'
+                    # suelo_gpx = '1'
+                    # # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+                    # tipo_bici_gpx = '1'
+                    # # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+                    # estado_gpx = '1'
+                    caracteristicasUsuario = caracteristicas.objects.all()
+                    if caracteristicasUsuario:
+                        suelo_gpx = caracteristicasUsuario.get("suelo")
+                        # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+                        tipo_bici_gpx = caracteristicasUsuario.get("tipo_bici")
+                        # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+                        estado_gpx = caracteristicasUsuario.get("estado")
+                    else:
+                        suelo_gpx = '1'
+                        # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+                        tipo_bici_gpx = '1'
+                        # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+                        estado_gpx = '1'
                     pred = prediccionNuevaRuta(desnivel_positivo=ascenso_gpx, desnivel_negativo=descenso_gpx,
                                                longitud=longitud_gpx, suelo=suelo_gpx, tipo_bici=tipo_bici_gpx,
                                                estado=estado_gpx)
@@ -657,6 +686,7 @@ def formularioNuevaRuta(request):
                         ascenso=resultados.get("alt_acum_max"),
                         descenso=resultados.get("alt_acum_min"),
                         tipoFichero='G',
+                        publico=False,
                         dureza=pred,
                         idUsuario=request.user
                     )
@@ -676,11 +706,20 @@ def formularioNuevaRuta(request):
                     descenso_gpx = resultados.get("alt_acum_min")
                     longitud_gpx = resultados.get("total_km")
                     # El suelo hay que cogerlo de la tabla caracteristicas usuario
-                    suelo_gpx = '1'
-                    # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
-                    tipo_bici_gpx = '1'
-                    # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
-                    estado_gpx = '1'
+                    usuario_log = request.user
+                    caracteristicasUsuario = usuario_log.caracteristicas
+                    if caracteristicasUsuario:
+                        suelo_gpx = caracteristicasUsuario.suelo
+                        # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+                        tipo_bici_gpx = caracteristicasUsuario.tipo_bici
+                        # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+                        estado_gpx = caracteristicasUsuario.estado
+                    else:
+                        suelo_gpx = '1'
+                        # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
+                        tipo_bici_gpx = '1'
+                        # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
+                        estado_gpx = '1'
                     pred = prediccionNuevaRuta(desnivel_positivo=ascenso_gpx, desnivel_negativo=descenso_gpx,
                                                longitud=longitud_gpx, suelo=suelo_gpx, tipo_bici=tipo_bici_gpx,
                                                estado=estado_gpx)
@@ -695,6 +734,7 @@ def formularioNuevaRuta(request):
                         descenso=resultados.get("alt_acum_min"),
                         dureza=pred,
                         tipoFichero='F',
+                        publico=False,
                         # imagen=mapa,
                         idUsuario=request.user
                     )
@@ -731,7 +771,20 @@ def detalles_ruta(request, id_ruta):
     try:
         ruta = Rutas.objects.get(pk=id_ruta)
         listaComentarios = ruta.comentarios.all()
+        try:
+            listaGraficos = graficoRuta.objects.get(id_ruta=ruta)
+            graficos = {
+                'Perfil': listaGraficos.gr_perfil,
+                'Pulsaciones': listaGraficos.gr_pulsaciones,
+                'Cadencia': listaGraficos.gr_cadencia,
+                'Temperatura': listaGraficos.gr_temperatura,
+            }
+        except:
+            return render(request, "proyectofinalWeb/detallesRutas.html",
+                          {'rutaSelec': ruta, 'listaComentarios': listaComentarios})
+
         return render(request, "proyectofinalWeb/detallesRutas.html",
-                      {'rutaSelec': ruta, 'listaComentarios': listaComentarios})
+                      {'rutaSelec': ruta, 'graficos': listaGraficos, 'listaComentarios': listaComentarios,
+                       "imagenes": graficos})
     except Rutas.DoesNotExist:
         return render(request, "proyectofinalWeb/error_ruta_no_encontrada.html", status=404)

@@ -11,11 +11,12 @@
     {% endblock %}
 </head>
 <body>
+<a href="/inicio/" class="text-decoration-none text-light">
 <header class="text-white text-center">
     <h1>Tienda y Rutas de Ciclismo</h1>
     <p>Explora, compra y planea tu próxima aventura</p>
 </header>
-
+</a>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <button class="navbar-toggler order-1" type="button" data-bs-toggle="collapse"
@@ -29,10 +30,10 @@
                 <li class="nav-item">
                     {% if request.path == '/listaVideos/' %}
                         <a class="nav-link disabled text-dark"
-                           href="{% url 'videos' %}">Videos</a>
+                           href="{% url 'listaVideos' %}">Videos</a>
                     {% else %}
                         <a class="nav-link {% if request.path == '/' %}disabled{% endif %}"
-                           href="{% url 'videos' %}">Videos</a>
+                           href="{% url 'listaVideos' %}">Videos</a>
                     {% endif %}
                 </li>
                 <li class="nav-item">
