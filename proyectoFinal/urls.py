@@ -16,6 +16,7 @@ urlpatterns = [
     path('durezaRuta/', viewsCalculaDureza.calcular, name='calcularDureza'),
     path('listavideos/', viewsVideos.cargarListas, name='listaVideos'),
     path('listavideos/<str:playlist_id>/', viewsVideos.cargarVideos, name='videos'),
+    path('visibilidad/', viewsRutas.visibilidad, name='visibilidad'),
     # path('listaVideos/', viewsVideos.mostrarLista, name='listaVideos'),
     #
     # path('listaVideos/videos', viewsVideos.cargarVideos, name='videos'),

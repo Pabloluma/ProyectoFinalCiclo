@@ -6,7 +6,9 @@ import fitparse
 import gpxpy
 import gpxpy.gpx
 from django.conf import settings
+from django.contrib import messages
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.views.decorators.http import require_POST
 from geopy.distance import geodesic
 from datetime import timedelta
 from keras.src.saving import load_model
@@ -788,3 +790,16 @@ def detalles_ruta(request, id_ruta):
                        "imagenes": graficos})
     except Rutas.DoesNotExist:
         return render(request, "proyectofinalWeb/error_ruta_no_encontrada.html", status=404)
+
+
+@usuario_no_admin_requerido
+@require_POST
+def visibilidad(request):
+    id_ruta = request.POST.get('id_ruta')
+    ruta_cambiar = Rutas.objects.get(pk=id_ruta)
+    cambiar_a = request.POST.get('publico') == 'True'
+    ruta_cambiar.publico = cambiar_a
+    ruta_cambiar.save()
+    estado = "pública" if cambiar_a else "privada"
+    messages.success(request, f"La ruta ahora es {estado}.", extra_tags="cambio_permiso")
+    return redirect('misRutas')
