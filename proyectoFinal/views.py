@@ -1,31 +1,30 @@
-import datetime
 import json
 import os
+from googleapiclient.discovery import build
 
+import humanize
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
-import humanize
-from django.utils import timezone
-
 # Create your views here.
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-
-from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from . import viewsVideos
 from .decorator import usuario_no_admin_requerido
-from .models import Rutas, caracteristicas
+from .models import Rutas, caracteristicas, lista
 
 
 def index(request):
@@ -112,14 +111,38 @@ def acceso(request):
         return redirect("index")
 
 
+def obtener_todasLista(playlist_id):
+    youtube = build('youtube', 'v3', developerKey=viewsVideos.YOUTUBE_API_KEY)
+    playlist_req = youtube.playlists().list(part='snippet', id=playlist_id).execute()
+    item = playlist_req['items'][0]
+    snippet = item['snippet']
+    return {
+        'id': playlist_id,
+        'title': snippet['title'],
+        'description': snippet.get('description', ''),
+        'thumbnail': snippet['thumbnails']['high']['url'],
+    }
+
+
+def cargarListas_Admin():
+    playlist_objs = lista.objects.all()
+    playlists = []
+    for obj in playlist_objs:
+        datos = obtener_todasLista(obj.nombre)
+        playlists.append(datos)
+
+    return playlists
+
+
 @login_required(login_url='index')
 def administracion(request):
     if request.user.is_authenticated and request.user.is_staff:
         usuario = get_user_model()
         listaUsuarios = usuario.objects.all()
         listaRutas = Rutas.objects.all()
+        listaPlaylist = cargarListas_Admin()
         return render(request, 'proyectofinalWeb/administracion.html',
-                      {"usuarios": listaUsuarios, "todasRutas": listaRutas})
+                      {"usuarios": listaUsuarios, "todasRutas": listaRutas, "todasPlaylist": listaPlaylist})
     else:
         return redirect('index')
 

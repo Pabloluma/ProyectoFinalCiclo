@@ -5,10 +5,8 @@
 {% block title %} Inicio {% endblock %}
 
 {% block despUsuario %}
-    {#    <ul class="navbar-nav ms-auto">#}
-    {#        <li class="nav-item">#}
     <div>
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAccede" >Iniciar Sesión</button>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAccede">Iniciar Sesión</button>
     </div>
 
     <div class="modal fade" id="modalAccede" tabindex="-1">
@@ -138,7 +136,7 @@
 {% endblock %}
 
 {% block contenido %}
-   <div class="container mt-4 mb-4">
+    <div class="container mt-4 mb-4">
         <div class="row row-cols-1 row-cols-md-1 g-4">
             <div class="col">
                 {% for ruta in rutas %}
@@ -201,14 +199,6 @@
                                             <span class="text-muted">Descenso</span> <strong>{{ ruta.descenso }}
                                             m</strong>
                                         </div>
-                                        <div class="me-md-0 me-5">
-                                            <span class="text-muted">Dureza</span> <strong
-                                                class="border rounded px-3 py-0{% if ruta.dureza == 'alta' %}border border-dark text-dark{% elif ruta.dureza == 'media' %}border border-danger text-danger{% elif ruta.dureza == 'baja' %}border border-success text-success{% endif %}">{{ ruta.dureza }}</strong>
-                                        </div>
-                                    </div>
-                                    <div class="mt-2 btn ">
-                                        <img src="/img/message-regular.jpg" width="16" alt=""> <small>{% if ruta.comentarios.count > 0%}{{ ruta.comentarios.count }}
-                                        comentarios</small>{% endif %}
                                     </div>
                                 </div>
                             </div>

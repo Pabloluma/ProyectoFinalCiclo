@@ -768,7 +768,7 @@ def mis_rutas(request):
 
 def detalles_ruta(request, id_ruta):
     referer = request.META.get('HTTP_REFERER', '')
-    if not referer.startswith(request.build_absolute_uri('/misRutas/')):
+    if '/misRutas' not in referer and '/inicio' not in referer:
         return redirect('misRutas')
     try:
         ruta = Rutas.objects.get(pk=id_ruta)
@@ -802,4 +802,13 @@ def visibilidad(request):
     ruta_cambiar.save()
     estado = "pública" if cambiar_a else "privada"
     messages.success(request, f"La ruta ahora es {estado}.", extra_tags="cambio_permiso")
+    return redirect('misRutas')
+
+
+@require_POST
+def eliminarRuta(request):
+    id_ruta = request.POST.get('id_ruta_eliminar')
+    ruta_eliminar = Rutas.objects.get(pk=id_ruta)
+    ruta_eliminar.delete()
+    messages.success(request, f"La ruta se ha eliminado correctamente", extra_tags="eliminar_Ruta")
     return redirect('misRutas')

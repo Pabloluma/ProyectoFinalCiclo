@@ -81,8 +81,9 @@
                                             <button type="submit" class="dropdown-item">{% if ruta.publico %}Hacer
                                                 Privado{% else %}Hacer Público{% endif %}</button>
                                         </form>
-                                        <form action="#" method="post">
+                                        <form action="{% url 'eliminarRuta' %}" method="post" id="formulario-eliminar">
                                             {% csrf_token %}
+                                            <input type="hidden" name="id_ruta_eliminar" value="{{ ruta.id }}">
                                             <button id="btnEliminar" type="submit" class="dropdown-item">Eliminar
                                             </button>
                                         </form>
@@ -192,19 +193,49 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
     <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         {% if messages %}
             {% for message in messages %}
                 {% if 'cambio_permiso' in message.extra_tags %}
-                iziToast.success({
-                    title: 'Éxito',
-                    message: '{{ message }}',
-                    position: 'topRight',
-                    timeout: 3000
-                });
+                    iziToast.success({
+                        message: '{{ message }}',
+                        position: 'topRight',
+                        timeout: 3000
+                    });
+                {% elif 'eliminar_Ruta' in message.extra_tags %}
+                    iziToast.success({
+                        message: '{{ message }}',
+                        position: 'topRight',
+                        timeout: 3000
+                    });
                 {% endif %}
             {% endfor %}
         {% endif %}
+    document.addEventListener('DOMContentLoaded', function () {
+            let formulario = document.querySelectorAll('#formulario-eliminar');
+
+            formulario.forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();  // Evita el envío inmediato
+
+                    Swal.fire({
+                        title: '¿Estás seguro que quieres eliminarla?',
+                        text: "¡No podrás deshacer esta acción!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();  // Ahora sí envía el formulario
+                        }
+                    });
+                });
+            });
+        });
     </script>
 {% endblock %}

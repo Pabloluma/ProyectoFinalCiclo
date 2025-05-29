@@ -2,7 +2,6 @@ from . import views, viewsRutas, viewsVideos
 from . import viewsCalculaDureza
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -17,6 +16,7 @@ urlpatterns = [
     path('listavideos/', viewsVideos.cargarListas, name='listaVideos'),
     path('listavideos/<str:playlist_id>/', viewsVideos.cargarVideos, name='videos'),
     path('visibilidad/', viewsRutas.visibilidad, name='visibilidad'),
+    path('eliminarRuta/', viewsRutas.eliminarRuta, name='eliminarRuta'),
     # path('listaVideos/', viewsVideos.mostrarLista, name='listaVideos'),
     #
     # path('listaVideos/videos', viewsVideos.cargarVideos, name='videos'),
