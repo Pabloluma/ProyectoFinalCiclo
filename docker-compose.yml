@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db_pfc:
+    image: mysql:8.0
+    container_name: contenedor_mysql
+    environment:
+      MYSQL_DATABASE: proyecto
+      MYSQL_ROOT_PASSWORD: proyectoFinal
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data_pfc:/var/lib/mysql
+
+  web:
+    build: .
+    container_name: contenedor_django
+    command: gunicorn ProyectoFinalCiclo.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db_pfc
+    environment:
+      DEBUG: "False"
+      DJANGO_SECRET_KEY: "django-insecure-$puccep&!n#b_-6ur938n+k*h)unx*)z)@j1s-378w6m%^j1)4"
+      DB_NAME: proyecto
+      DB_USER: proyectoFinal
+      DB_PASSWORD: proyectoFinal
+      DB_HOST: db_pfc
+      DB_PORT: 3306
+
+volumes:
+  db_data_pfc:
