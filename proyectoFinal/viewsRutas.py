@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.views.decorators.http import require_POST
 from geopy.distance import geodesic
-from datetime import timedelta
+from datetime import timedelta, datetime
 from keras.src.saving import load_model
 import pandas as pd
 import numpy as np
@@ -595,25 +595,46 @@ def formularioNuevaRuta(request):
         if botonGuardar == 'manual':
             titulo = request.POST.get('titulo')
             fecha = request.POST.get('fecha')
-            tiempo = request.POST.get('tiempo')
+            # tiempo = request.POST.get('tiempo')
             distancia = request.POST.get('distancia')
             velocidad = request.POST.get('velocidad')
             ascenso = request.POST.get('ascenso')
             descenso = request.POST.get('descenso')
             visibilidad = request.POST.get('visibilidad')
+
+            # --- MODIFICACIÓN CLAVE PARA EL TIEMPO ---
+            # Obtener las partes separadas del tiempo
+            horas_str = request.POST.get('horas', '0')
+            minutos_str = request.POST.get('minutos', '0')
+            segundos_str = request.POST.get('segundos', '0')
+
+            # Convertir a enteros y manejar posibles errores (fundamental para la conversión)
+            try:
+                horas = int(horas_str)
+                minutos = int(minutos_str)
+                segundos = int(segundos_str)
+            except ValueError:
+                # Si no son números válidos, se asumirá 0 para la conversión
+                horas, minutos, segundos = 0, 0, 0
+
+            # Convertir a objeto datetime.time (para models.TimeField)
+            # Esto maneja el desbordamiento de 24 horas: 25h se convierte en 01:00:00
+            total_seconds_duration = horas * 3600 + minutos * 60 + segundos
+            tiempo_obj = (datetime.min + timedelta(seconds=total_seconds_duration)).time()
             # El suelo hay que cogerlo de la tabla caracteristicas usuario
             # suelo_usuario = '1'
             # # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
             # tipo_bici_usuario = '1'
             # # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
             # estado_usuario = '1'
-            caracteristicasUsuario = caracteristicas.objects.all()
+            usuario_log = request.user
+            caracteristicasUsuario = usuario_log.caracteristicas
             if caracteristicasUsuario:
-                suelo_usuario = caracteristicasUsuario.get("suelo")
+                suelo_usuario = caracteristicasUsuario.suelo
                 # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
-                tipo_bici_usuario = caracteristicasUsuario.get("tipo_bici")
+                tipo_bici_usuario = caracteristicasUsuario.tipo_bici
                 # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
-                estado_usuario = caracteristicasUsuario.get("estado")
+                estado_usuario = caracteristicasUsuario.estado
             else:
                 suelo_usuario = '1'
                 # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
@@ -626,7 +647,7 @@ def formularioNuevaRuta(request):
             ruta = Rutas(
                 titulo=titulo,
                 fecha=fecha,
-                tiempo=tiempo,
+                tiempo=tiempo_obj,
                 distancia=distancia,
                 velocidad=velocidad,
                 ascenso=ascenso,
@@ -663,13 +684,14 @@ def formularioNuevaRuta(request):
                     # tipo_bici_gpx = '1'
                     # # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
                     # estado_gpx = '1'
-                    caracteristicasUsuario = caracteristicas.objects.all()
+                    usuario_log = request.user
+                    caracteristicasUsuario = usuario_log.caracteristicas
                     if caracteristicasUsuario:
-                        suelo_gpx = caracteristicasUsuario.get("suelo")
-                        # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
-                        tipo_bici_gpx = caracteristicasUsuario.get("tipo_bici")
-                        # El estado del ciclista hay que cogerlo de la tabla caracteristicas usuario
-                        estado_gpx = caracteristicasUsuario.get("estado")
+                        suelo_gpx = caracteristicasUsuario.suelo
+
+                        tipo_bici_gpx = caracteristicasUsuario.tipo_bici
+
+                        estado_gpx = caracteristicasUsuario.estado
                     else:
                         suelo_gpx = '1'
                         # El tipo de bici hay que cogerlo de la tabla caracteristicas usuario
@@ -791,7 +813,6 @@ def detalles_ruta(request, id_ruta):
                        "imagenes": graficos})
     except Rutas.DoesNotExist:
         messages.success(request, "La ruta no existe", extra_tags="ruta_error")
-        # return render(request, "proyectofinalWeb/error_ruta_no_encontrada.html", status=404)
 
 
 @usuario_no_admin_requerido

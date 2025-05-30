@@ -102,15 +102,16 @@
                     <li class="list-group-item">{{ comment.comentario }}</li>
                 {% endfor %}
             </ul>
-            {% if not request.user.is_anonymous %}
-                <form id="comentario-form">
+{#            {% if not request.user.is_anonymous %}#}
+                <form id="comentario-form" action="{% url 'comentarios' %}" method="post" >
+                    {% csrf_token %}
                     <div class="mb-3">
-                    <textarea class="form-control" id="comentario" rows="3"
+                    <textarea class="form-control" id="comentario" name="texto_comentario" rows="3"
                               placeholder="Escribe tu comentario..."></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">Agregar Comentario</button>
                 </form>
-            {% endif %}
+{#            {% endif %}#}
         </div>
     </div>
 

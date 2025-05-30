@@ -20,9 +20,9 @@ urlpatterns = [
     path('eliminarRuta/', viewsRutas.eliminarRuta, name='eliminarRuta'),
     path('eliminarVideo/', viewsRutas.eliminarVideo, name='eliminarVideo'),
     path('eliminarUsuario/', viewsRutas.eliminarUsuario, name='eliminarUsuario'),
-    # path('listaVideos/', viewsVideos.mostrarLista, name='listaVideos'),
-    #
-    # path('listaVideos/videos', viewsVideos.cargarVideos, name='videos'),
+
+    path('comentarios/', views.comentarios, name='comentarios'),
+    path('informe/', views.obtenerInforme, name='obtenerInforme'),
     path('perfil/', views.perfil, name='perfil'),
 
     path('actualizar_usuario/', views.actualizar_usuario, name='actualizar_usuario'),

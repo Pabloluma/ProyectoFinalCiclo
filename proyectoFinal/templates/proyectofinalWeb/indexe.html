@@ -45,15 +45,15 @@
                             <input type="password" class="form-control" name="password" id="inputPassword"
                                    placeholder="Escribe tu contraseña..." required>
                         </div>
-                        <input type="hidden"  name="enviar" value="ini">
-{#                        <button type="submit" class="btn btn-success container-fluid mt-3" name="enviar" value="ini">#}
-{#                            Iniciar sesion#}
-{#                        </button>#}
+                        <input type="hidden" name="enviar" value="ini">
+                        {#                        <button type="submit" class="btn btn-success container-fluid mt-3" name="enviar" value="ini">#}
+                        {#                            Iniciar sesion#}
+                        {#                        </button>#}
                         <button type="submit" class="btn btn-success container-fluid mt-3">
                             Iniciar sesion
                         </button>
-                        <p><a  class="btn btn-secondary" href="#" data-bs-toggle="modal"
-                       data-bs-target="#modalOlvidoPassw"> ¿Has olvidado la contraseña?</a></p>
+                        <p><a class="btn btn-secondary" href="#" data-bs-toggle="modal"
+                              data-bs-target="#modalOlvidoPassw"> ¿Has olvidado la contraseña?</a></p>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -71,10 +71,11 @@
                     <p class="text-center w-100 mb-0">REGISTRATE</p>
                 </div>
                 <div class="modal-body">
-                    {% if error %}
-                        <div class="alert alert-danger">{{ error }}</div>
-                    {% endif %}
-                    <form class="needs-validation" id="formularioReg" action="{% url 'registroAcceso' %}" novalidate method="post">
+                    {#                    {% if error %}#}
+                    {#                        <div class="alert alert-danger">{{ error }}</div>#}
+                    {#                    {% endif %}#}
+                    <form class="needs-validation" id="formularioReg" action="{% url 'registroAcceso' %}" novalidate
+                          method="post">
                         {% csrf_token %}
                         <div class="mb-3">
                             <input type="text" class="form-control" id="InpRegUsername" placeholder="Nombre de usuario"
@@ -118,11 +119,7 @@
                         </div>
                         <input type="hidden" name="enviar" value="reg">
                         <div class="mb-3">
-{#                            <button class="btn btn-success container-fluid mt-3" name="enviar" value="reg"#}
-{#                                    type="submit">Registrate#}
-{#                            </button>#}
-                            <button class="btn btn-success container-fluid mt-3"type="submit">Registrate</button>
-
+                            <button class="btn btn-success container-fluid mt-3" type="submit">Registrate</button>
                         </div>
                     </form>
                 </div>
@@ -148,9 +145,9 @@
                         </div>
                         <input type="hidden" name="enviar" value="recPass">
                         <div class="mb-3">
-{#                            <button class="btn btn-success container-fluid mt-3" name="enviar" value="recPass"#}
-{#                                    type="submit">Enviar#}
-{#                            </button>#}
+                            {#                            <button class="btn btn-success container-fluid mt-3" name="enviar" value="recPass"#}
+                            {#                                    type="submit">Enviar#}
+                            {#                            </button>#}
                             <button class="btn btn-success container-fluid mt-3" type="submit">Enviar
                             </button>
                         </div>
@@ -162,34 +159,55 @@
 {% endblock %}
 
 {% block js %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    let formulario = document.getElementById("formularioReg");
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    formulario.addEventListener("submit", function (event) {
-        event.preventDefault();
+    <script>
+        {% if messages %}
+            {% for message in messages %}
+                {% if 'registro_valido' in message.extra_tags %}
+                    iziToast.success({
+                        message: '{{ message }}',
+                        position: 'topRight',
+                        timeout: 3000
+                    });
+                {% elif 'registro_fallido' in message.extra_tags %}
+                    iziToast.error({
+                        message: '{{ message }}',
+                        position: 'topRight',
+                        timeout: 3000
+                    });
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        document.addEventListener("DOMContentLoaded", function () {
+            let formulario = document.getElementById("formularioReg");
 
-        if (!formulario.checkValidity()) {
-            event.stopPropagation();
-            formulario.classList.add("was-validated");
-            return;
-        }
+            formulario.addEventListener("submit", function (event) {
+                event.preventDefault();
 
-        let password = document.getElementById("InpRegPassword").value;
-        const repPassword = document.getElementById("InpRegPasswordDup").value;
+                if (!formulario.checkValidity()) {
+                    event.stopPropagation();
+                    formulario.classList.add("was-validated");
+                    return;
+                }
 
-        if (password !== repPassword) {
-            const passwdRep = document.getElementById("InpRegPasswordDup");
-            passwdRep.setCustomValidity("Las contraseñas no coinciden.");
-            passwdRep.reportValidity();
-            return;
-        } else {
-            document.getElementById("InpRegPasswordDup").setCustomValidity("");
-        }
+                let password = document.getElementById("InpRegPassword").value;
+                const repPassword = document.getElementById("InpRegPasswordDup").value;
 
-        document.getElementById('formularioReg').submit();
-    });
-});
-</script>
+                if (password !== repPassword) {
+                    const passwdRep = document.getElementById("InpRegPasswordDup");
+                    passwdRep.setCustomValidity("Las contraseñas no coinciden.");
+                    passwdRep.reportValidity();
+                    return;
+                } else {
+                    document.getElementById("InpRegPasswordDup").setCustomValidity("");
+                }
+
+                document.getElementById('formularioReg').submit();
+            });
+        });
+    </script>
 {% endblock %}

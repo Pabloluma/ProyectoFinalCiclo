@@ -1,5 +1,7 @@
+import io
 import json
 import os
+from collections import Counter
 from googleapiclient.discovery import build
 
 import humanize
@@ -11,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 # Create your views here.
 from django.template.loader import render_to_string
@@ -21,10 +23,14 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from matplotlib import pyplot as plt
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
 
 from . import viewsVideos
 from .decorator import usuario_no_admin_requerido
-from .models import Rutas, caracteristicas, lista
+from .models import Rutas, caracteristicas, lista, Comentarios
 
 
 def index(request):
@@ -46,6 +52,19 @@ def index(request):
             })
 
 
+def comentarios(request):
+    if request.method == 'POST':
+        ruta_sep = request.headers.get('Referer').split('/')
+        id_ruta= ruta_sep[-2]
+        textoComentario = request.POST.get('texto_comentario')
+        ruta = Rutas.objects.get(id=id_ruta)
+        nuevoComentario = Comentarios.objects.create(comentario=textoComentario, id_ruta=ruta)
+        nuevoComentario.save()
+        return redirect('detalles_ruta', id_ruta=id_ruta)
+    else:
+        return render(request, 'error/404.html', status=404)
+
+
 def acceso(request):
     if request.method == "POST":
         botonEnv = request.POST.get("enviar")
@@ -62,10 +81,13 @@ def acceso(request):
                                                            last_name=apellidos)
                     usuario_reg.save()
 
-                    carac = caracteristicas(tipo_bici=1, estado=0, suelo=1, usuario=usuario_reg)
+                    carac = caracteristicas.objects.create(tipo_bici=1, estado=0, suelo=1, usuario_id=usuario_reg)
                     carac.save()
+                    messages.error(request, "Se ha registrado correctamente",
+                                   extra_tags="registro_valido")
             except Exception as e:
-                # Hay que poner en el html que ha dado error
+                messages.error(request, "El Nombre de usuario o el correo ya estaba registrado",
+                               extra_tags="registro_fallido")
                 return render(request, "proyectofinalWeb/indexe.html", {"error": str(e)})
         elif botonEnv == "ini":
             password = request.POST.get('password')
@@ -83,16 +105,13 @@ def acceso(request):
             emailRec = request.POST.get('emailRec')
             try:
                 user = User.objects.get(email=emailRec)
-                # Enviar el correo para el restablecimiento de la contraseña
-                token = default_token_generator.make_token(user)
 
+                token = default_token_generator.make_token(user)
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
-                # Genera el enlace para restablecer la contraseña
                 reset_link = request.build_absolute_uri(
                     reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
                 )
 
-                # Crear el mensaje que se enviará al usuario
                 subject = "Solicitud de Restablecimiento de Contraseña"
                 message = render_to_string('proyectofinalWeb/password_reset_email.html', {
                     'user': user,
@@ -130,7 +149,6 @@ def cargarListas_Admin():
     for obj in playlist_objs:
         datos = obtener_todasLista(obj.nombre)
         playlists.append(datos)
-
     return playlists
 
 
@@ -238,6 +256,67 @@ def actualizar_usuario(request):
             return JsonResponse({'success': False, 'error': error_message}, status=500)
         else:
             return render(request, "error/405.html", status=405)
+
+
+def obtenerInforme(request):
+    # # Crear respuesta como PDF
+    # response = HttpResponse(content_type='application/pdf')
+    # response['Content-Disposition'] = 'inline; filename="informe.pdf"'
+    #
+    # # Crear PDF con ReportLab
+    # p = canvas.Canvas(response)
+    # p.setFont("Helvetica", 14)
+    # p.drawString(100, 750, "Hola mundo")
+    # p.showPage()
+    # p.save()
+    #
+    # return response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="informe_rutas.pdf"'
+    rutas = Rutas.objects.all()
+    conteo_usuarios = Counter(ruta.idUsuario_id for ruta in rutas)
+    usuarios = User.objects.all()
+    # usuarios = list(conteo_usuarios.keys())
+    # num_rutas = list(conteo_usuarios.values())
+    usuarios_ids = [user.id for user in usuarios]
+    usuarios_nombres = [user.username for user in usuarios]
+
+    num_rutas = [conteo_usuarios.get(user_id, 0) for user_id in usuarios_ids]
+    # 2. Crear gráfico con matplotlib
+    # plt.figure(figsize=(8, 5))
+    # plt.bar(usuarios, num_rutas, color='skyblue')
+    # plt.xlabel("ID de Usuario")
+    # plt.ylabel("Número de Rutas")
+    # plt.title("Número de Rutas por Usuario")
+    # plt.xticks(usuarios)
+    # plt.tight_layout()
+    plt.figure(figsize=(10, 6))
+    plt.bar(usuarios_nombres, num_rutas, color='skyblue')
+    plt.xlabel("Usuario")
+    plt.ylabel("Número de Rutas")
+    plt.title("Número de Rutas por Usuario")
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+
+    img_buffer = io.BytesIO()
+    plt.savefig(img_buffer, format='png')
+    plt.close()
+    img_buffer.seek(0)
+    image = ImageReader(img_buffer)
+
+    # 3. Crear PDF y dibujar el gráfico
+
+    pdf = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.setTitle("Rutas por usuario")
+    pdf.drawString(100, 770, "Informe de Rutas por Usuario")
+    pdf.drawImage(image, 100, 430, width=400, height=300)
+    pdf.setFont("Helvetica", 12)
+    pdf.drawCentredString(width / 2, 380, "Este gráfico muestra cuántas rutas ha hecho cada usuario.")
+    pdf.showPage()
+    pdf.save()
+    return response
 
 
 def error_404_view(request, exception):
