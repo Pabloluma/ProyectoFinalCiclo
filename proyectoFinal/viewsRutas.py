@@ -7,6 +7,7 @@ import gpxpy
 import gpxpy.gpx
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.views.decorators.http import require_POST
 from geopy.distance import geodesic
@@ -25,7 +26,7 @@ from django.shortcuts import render, redirect
 
 from proyectoFinal import views
 from proyectoFinal.decorator import usuario_no_admin_requerido
-from proyectoFinal.models import Rutas, graficoRuta, caracteristicas
+from proyectoFinal.models import Rutas, graficoRuta, caracteristicas, lista
 
 import folium
 
@@ -344,7 +345,7 @@ def generarImagenMapaGPX(fichero_gpx, rutaGuardada):
     ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
 
     xmin, xmax = ax.get_xlim()
-    ancho_figura = fig.get_figwidth()  # Ancho de la figura en pulgadas
+    ancho_figura = fig.get_figwidth()
     extension_longitud = (xmax - xmin) * (3 / ancho_figura)  # Aproximación de 3 pulgadas en longitud
 
     xmin_extendido = xmin - extension_longitud
@@ -789,26 +790,55 @@ def detalles_ruta(request, id_ruta):
                       {'rutaSelec': ruta, 'graficos': listaGraficos, 'listaComentarios': listaComentarios,
                        "imagenes": graficos})
     except Rutas.DoesNotExist:
-        return render(request, "proyectofinalWeb/error_ruta_no_encontrada.html", status=404)
+        messages.success(request, "La ruta no existe", extra_tags="ruta_error")
+        # return render(request, "proyectofinalWeb/error_ruta_no_encontrada.html", status=404)
 
 
 @usuario_no_admin_requerido
-@require_POST
+# @require_POST
 def visibilidad(request):
-    id_ruta = request.POST.get('id_ruta')
-    ruta_cambiar = Rutas.objects.get(pk=id_ruta)
-    cambiar_a = request.POST.get('publico') == 'True'
-    ruta_cambiar.publico = cambiar_a
-    ruta_cambiar.save()
-    estado = "pública" if cambiar_a else "privada"
-    messages.success(request, f"La ruta ahora es {estado}.", extra_tags="cambio_permiso")
-    return redirect('misRutas')
+    if request.method == "POST":
+        id_ruta = request.POST.get('id_ruta')
+        ruta_cambiar = Rutas.objects.get(pk=id_ruta)
+        cambiar_a = request.POST.get('publico') == 'True'
+        ruta_cambiar.publico = cambiar_a
+        ruta_cambiar.save()
+        estado = "pública" if cambiar_a else "privada"
+        messages.success(request, f"La ruta ahora es {estado}.", extra_tags="cambio_permiso")
+        return redirect('misRutas')
+    else:
+        return render(request, "error/405.html", status=405)
 
 
-@require_POST
+# @require_POST
 def eliminarRuta(request):
-    id_ruta = request.POST.get('id_ruta_eliminar')
-    ruta_eliminar = Rutas.objects.get(pk=id_ruta)
-    ruta_eliminar.delete()
-    messages.success(request, f"La ruta se ha eliminado correctamente", extra_tags="eliminar_Ruta")
-    return redirect('misRutas')
+    if request.method == "POST":
+        id_ruta = request.POST.get('id_ruta_eliminar')
+        ruta_eliminar = Rutas.objects.get(pk=id_ruta)
+        ruta_eliminar.delete()
+        messages.success(request, f"La ruta se ha eliminado correctamente", extra_tags="eliminar_Ruta")
+        return redirect('misRutas')
+    else:
+        return render(request, "error/405.html", status=405)
+
+
+def eliminarVideo(request):
+    if request.method == "POST":
+        id_lista = request.POST.get('id_video_eliminar')
+        lista_eliminar = lista.objects.get(pk=id_lista)
+        lista_eliminar.delete()
+        messages.success(request, f"La lista se ha eliminado correctamente", extra_tags="eliminar_lista")
+        return redirect('misRutas')
+    else:
+        return render(request, "error/405.html", status=405)
+
+
+def eliminarUsuario(request):
+    if request.method == "POST":
+        id_usuario = request.POST.get('id_usuario_eliminar')
+        usuario_eliminar = User.objects.get(pk=id_usuario)
+        usuario_eliminar.delete()
+        messages.success(request, f"El usuario se ha eliminado correctamente", extra_tags="eliminar_Usuario")
+        return redirect('misRutas')
+    else:
+        return render(request, "error/405.html", status=405)

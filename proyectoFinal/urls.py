@@ -14,9 +14,12 @@ urlpatterns = [
     path('administracion/', views.administracion, name='administracion'),
     path('durezaRuta/', viewsCalculaDureza.calcular, name='calcularDureza'),
     path('listavideos/', viewsVideos.cargarListas, name='listaVideos'),
+    path('añadir_playlist/', viewsVideos.añadirLista, name='añadir_playlist'),
     path('listavideos/<str:playlist_id>/', viewsVideos.cargarVideos, name='videos'),
     path('visibilidad/', viewsRutas.visibilidad, name='visibilidad'),
     path('eliminarRuta/', viewsRutas.eliminarRuta, name='eliminarRuta'),
+    path('eliminarVideo/', viewsRutas.eliminarVideo, name='eliminarVideo'),
+    path('eliminarUsuario/', viewsRutas.eliminarUsuario, name='eliminarUsuario'),
     # path('listaVideos/', viewsVideos.mostrarLista, name='listaVideos'),
     #
     # path('listaVideos/videos', viewsVideos.cargarVideos, name='videos'),

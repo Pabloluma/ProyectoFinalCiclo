@@ -176,30 +176,34 @@ def accesoAnonimo(request):
     else:
         return redirect('index')
 
+
 # Este decorador se ha declarado en el fichero decorator.py
 @usuario_no_admin_requerido
 def perfil(request):
-    listaRutas = Rutas.objects.filter(idUsuario_id=request.user.id)
-    listaCaract = caracteristicas.objects.filter(usuario_id_id=request.user.id)
-    if listaCaract:
-        ruta_json = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\diccionarios.json')
-        with open(ruta_json, 'r') as f:
-            datos_json = json.load(f)
-        valorSuelo = datos_json['dic_suelo'][str(listaCaract[0].suelo)]
-        valorBici = datos_json['dic_bici'][str(listaCaract[0].tipo_bici)]
-        valorEstado = datos_json['dic_estado'][str(listaCaract[0].estado)]
-        return render(request, 'proyectofinalWeb/perfil.html',
-                      {"rutas": listaRutas, "caract": listaCaract, "suelo": valorSuelo, "bici": valorBici,
-                       "estado": valorEstado})
+    if request.user.is_anonymous:
+        return render(request, "error/404.html", status=404)
     else:
-        return render(request, 'proyectofinalWeb/perfil.html',
-                      {"rutas": listaRutas, "caract": listaCaract})
+        listaRutas = Rutas.objects.filter(idUsuario_id=request.user.id)
+        listaCaract = caracteristicas.objects.filter(usuario_id_id=request.user.id)
+        if listaCaract:
+            ruta_json = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\diccionarios.json')
+            with open(ruta_json, 'r') as f:
+                datos_json = json.load(f)
+            valorSuelo = datos_json['dic_suelo'][str(listaCaract[0].suelo)]
+            valorBici = datos_json['dic_bici'][str(listaCaract[0].tipo_bici)]
+            valorEstado = datos_json['dic_estado'][str(listaCaract[0].estado)]
+            return render(request, 'proyectofinalWeb/perfil.html',
+                          {"rutas": listaRutas, "caract": listaCaract, "suelo": valorSuelo, "bici": valorBici,
+                           "estado": valorEstado})
+        else:
+            return render(request, 'proyectofinalWeb/perfil.html',
+                          {"rutas": listaRutas, "caract": listaCaract})
 
 
 # Falta que se cambie en la base de datos, ahora solo esta para los 3 tipos, implementar resto de campos
 @csrf_exempt
 # Solo permite peticiones POST
-@require_POST
+# @require_POST
 def actualizar_usuario(request):
     if request.method == 'POST':
         try:
@@ -232,3 +236,17 @@ def actualizar_usuario(request):
             error_message = f'Error inesperado: {e}'
             print(f"Error: {error_message}")
             return JsonResponse({'success': False, 'error': error_message}, status=500)
+        else:
+            return render(request, "error/405.html", status=405)
+
+
+def error_404_view(request, exception):
+    return render(request, 'error/404.html', status=404)
+
+
+def error_405_view(request, exception):
+    return render(request, 'error/405.html', status=405)
+
+
+def error_500_view(request):
+    return render(request, 'error/500.html', status=500)

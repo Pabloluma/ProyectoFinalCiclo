@@ -32,11 +32,7 @@
     <div class="modal fade" id="modalAccede" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <button class="btn btn-primary container-fluid" type="button">Inicia Sesion con Facebook</button>
-                </div>
                 <div class="modal-body">
-                    <p>o bien.</p>
                     <form method="post" action="{% url 'registroAcceso' %}">
                         {% csrf_token %}
                         <div class="form-group">

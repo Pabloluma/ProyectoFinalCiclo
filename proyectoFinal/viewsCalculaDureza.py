@@ -17,7 +17,10 @@ from proyectoFinal.decorator import usuario_no_admin_requerido
 @usuario_no_admin_requerido
 def calcular(request):
     if request.method == 'GET':
-        return render(request, 'proyectofinalWeb/calcular_dureza.html')
+        if request.user.is_anonymous:
+            return render(request, "error/404.html", status=404)
+        else:
+            return render(request, 'proyectofinalWeb/calcular_dureza.html')
     if request.method == 'POST':
         try:
             ruta_modelo = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static', 'ficheros', 'RN_TFG_v3.h5')
