@@ -24,6 +24,7 @@ urlpatterns = [
     path('comentarios/', views.comentarios, name='comentarios'),
     path('informe/', views.obtenerInforme, name='obtenerInforme'),
     path('perfil/', views.perfil, name='perfil'),
+    path('editarAdmin/', views.editarAdmin, name='editarAdmin'),
 
     path('actualizar_usuario/', views.actualizar_usuario, name='actualizar_usuario'),
 

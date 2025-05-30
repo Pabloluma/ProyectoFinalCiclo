@@ -33,7 +33,6 @@
                         <input class="dropdown-item" type="submit" value="Cerrar Sesion">
                     </form>
                 </li>
-                {#                <li><a class="dropdown-item" href="{% url 'index' %}">Cerrar sesión</a></li>#}
             </ul>
         </li>
     </ul>
@@ -45,9 +44,8 @@
             <div class="carousel-inner">
                 <div class="carousel-item active">
                     <h1 class="text-center">Configuración de videos y usuarios</h1>
+                    <button onclick="abrirInforme()">Generar informe</button>
                     <div class="accordion pt-5 pb-5" id="accordionPanelsStayOpenExample">
-
-                        <!-- Sección de Usuarios -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button" type="button" data-bs-toggle="collapse"
@@ -79,8 +77,24 @@
                                                         {% endif %}
                                                     </td>
                                                     <td class="text-center">
-                                                        <button class="btn btn-sm btn-warning">Editar</button>
-                                                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                                                        <form method="post" action="{% url 'editarAdmin' %}"
+                                                              class="form-editar">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="id_usuario_editar"
+                                                                   value="{{ usuario.id }}">
+                                                            <button type="submit" class="btn btn-sm btn-warning">
+                                                                Editar
+                                                            </button>
+                                                        </form>
+                                                        <form method="post" action="{% url 'eliminarUsuario' %}"
+                                                              class="form-eliminar">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="id_usuario_eliminar"
+                                                                   value="{{ usuario.id }}">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                                Eliminar
+                                                            </button>
+                                                        </form>
                                                     </td>
                                                 </tr>
                                             {% endfor %}
@@ -105,11 +119,13 @@
                                             <div class="col-lg-4 col-md-6 col-12 d-flex">
                                                 <div class="card flex-fill shadow-sm">
                                                     <div class="card-body">
+                                                    {% if ruta.tipoFichero != 'M' %}
                                                         <div class="ratio ratio-4x3 mb-3">
                                                             <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}"
                                                                  class="img-fluid rounded object-fit-contain"
                                                                  alt="Mapa de ruta">
                                                         </div>
+                                                    {% endif %}
                                                         <p class="fs-5 fw-bold mb-1">{{ ruta.titulo }}</p>
                                                         <p class="mb-1">Distancia: {{ ruta.distancia }} km</p>
                                                         <p class="mb-1">
@@ -127,7 +143,8 @@
                                                         <form method="post" action="{% url 'eliminarRuta' %}"
                                                               class="form-eliminar">
                                                             {% csrf_token %}
-                                                            <input type="hidden" name="id_ruta_eliminar" value="{{ ruta.id }}">
+                                                            <input type="hidden" name="id_ruta_eliminar"
+                                                                   value="{{ ruta.id }}">
                                                             <button type="submit" class="btn btn-outline-danger btn-sm">
                                                                 Eliminar
                                                             </button>
@@ -148,7 +165,6 @@
                                     VIDEOS
                                 </button>
                             </h2>
-                            {% comment %}Hay que modificar para que se pueda guardar una nueva playlist{% endcomment %}
                             <div id="collapseVideos" class="accordion-collapse collapse">
                                 <div class="accordion-body">
                                     <div class="d-flex justify-content-end mb-3">
@@ -169,10 +185,16 @@
                                                         <div class="card-body">
                                                             <p class="card-text fw-semibold">{{ lista.title }}</p>
                                                             <div class="text-end">
-                                                                <button class="btn btn-outline-danger btn-sm"
-                                                                        onclick="confirmarEliminacionVideo({{ video.id }})">
-                                                                    Eliminar
-                                                                </button>
+                                                                <form method="post" action="{% url 'eliminarVideo' %}"
+                                                                      class="form-eliminar">
+                                                                    {% csrf_token %}
+                                                                    <input type="hidden" name="id_video_eliminar"
+                                                                           value="{{ lista.id }}">
+                                                                    <button type="submit"
+                                                                            class="btn btn-outline-danger btn-sm">
+                                                                        Eliminar
+                                                                    </button>
+                                                                </form>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -185,7 +207,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div> <!-- Fin Accordion -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -199,6 +221,10 @@
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function abrirInforme() {
+            window.open("{% url 'obtenerInforme' %}", '_blank');
+        }
+
         $(document).ready(function () {
             $('#tablaUsuarios').DataTable({
                 language: {
@@ -230,5 +256,49 @@
                 });
             });
         });
+
+        function agregarPlaylist() {
+            Swal.fire({
+                title: 'Añadir nueva Playlist',
+                input: 'url',
+                inputLabel: 'Introduce la URL de la playlist de YouTube',
+                inputPlaceholder: 'https://www.youtube.com/playlist?list=...',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (value) => {
+                    if (!value || value.trim() === "") {
+                        return '¡Debes introducir una URL!';
+                    }
+
+                    try {
+                        const url = new URL(value);
+
+                        if (!url.hostname === "www.youtube.com" || !url.pathname === "/playlist" || !url.searchParams.has("list")) {
+                            return 'La URL debe ser una playlist válida de YouTube.';
+                        }
+
+                        return null;
+
+                    } catch (_) {
+                        return 'El formato de la URL no es válido.';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = "{% url 'añadir_playlist' %}";
+
+                    const csrfToken = '{{ csrf_token }}';
+                    form.innerHTML = `
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                <input type="hidden" name="url_playlist" value="${result.value}">`;
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
     </script>
 {% endblock %}

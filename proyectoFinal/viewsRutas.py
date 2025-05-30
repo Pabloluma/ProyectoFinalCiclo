@@ -860,6 +860,6 @@ def eliminarUsuario(request):
         usuario_eliminar = User.objects.get(pk=id_usuario)
         usuario_eliminar.delete()
         messages.success(request, f"El usuario se ha eliminado correctamente", extra_tags="eliminar_Usuario")
-        return redirect('misRutas')
+        return redirect('administracion')
     else:
         return render(request, "error/405.html", status=405)

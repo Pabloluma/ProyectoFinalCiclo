@@ -164,6 +164,28 @@ def administracion(request):
     else:
         return redirect('index')
 
+def editarAdmin(request):
+    if request.method == 'POST':
+        id_usuario = request.POST.get('id_usuario_editar')
+        if request.user.is_anonymous:
+            return render(request, "error/404.html", status=404)
+        else:
+            listaRutas = Rutas.objects.filter(idUsuario_id=id_usuario)
+            listaCaract = caracteristicas.objects.filter(usuario_id_id=id_usuario)
+            if listaCaract:
+                ruta_json = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\diccionarios.json')
+                with open(ruta_json, 'r') as f:
+                    datos_json = json.load(f)
+                valorSuelo = datos_json['dic_suelo'][str(listaCaract[0].suelo)]
+                valorBici = datos_json['dic_bici'][str(listaCaract[0].tipo_bici)]
+                valorEstado = datos_json['dic_estado'][str(listaCaract[0].estado)]
+                return render(request, 'proyectofinalWeb/perfil.html',
+                              {"rutas": listaRutas, "caract": listaCaract, "suelo": valorSuelo, "bici": valorBici,
+                               "estado": valorEstado})
+            else:
+                return render(request, 'proyectofinalWeb/perfil.html',
+                              {"rutas": listaRutas, "caract": listaCaract})
+
 
 def diferenciaTiempo(fecha_subida):
     fecha_actual = timezone.now()
