@@ -4,6 +4,7 @@ import os
 from collections import Counter
 
 from django.core.paginator import Paginator
+from django.db.models import Count
 from googleapiclient.discovery import build
 
 import humanize
@@ -57,7 +58,7 @@ def index(request):
 def comentarios(request):
     if request.method == 'POST':
         ruta_sep = request.headers.get('Referer').split('/')
-        id_ruta= ruta_sep[-2]
+        id_ruta = ruta_sep[-2]
         textoComentario = request.POST.get('texto_comentario')
         ruta = Rutas.objects.get(id=id_ruta)
         nuevoComentario = Comentarios.objects.create(comentario=textoComentario, id_ruta=ruta)
@@ -169,10 +170,10 @@ def administracion(request):
         numero_pagina_playlists = request.GET.get('page_playlists')
         todasPlaylist = paginador_listas.get_page(numero_pagina_playlists)
         return render(request, 'proyectofinalWeb/administracion.html',
-                      # {"usuarios": listaUsuarios, "todasRutas": listaRutas, "todasPlaylist": listaPlaylist})
                       {"usuarios": listaUsuarios, "todasRutas": todasRutas, "todasPlaylist": todasPlaylist})
     else:
         return redirect('index')
+
 
 def editarAdmin(request):
     if request.method == 'POST':
@@ -250,7 +251,6 @@ def perfil(request):
                           {"rutas": listaRutas, "caract": listaCaract})
 
 
-# Falta que se cambie en la base de datos, ahora solo esta para los 3 tipos, implementar resto de campos
 @csrf_exempt
 # Solo permite peticiones POST
 # @require_POST
@@ -291,37 +291,15 @@ def actualizar_usuario(request):
 
 
 def obtenerInforme(request):
-    # # Crear respuesta como PDF
-    # response = HttpResponse(content_type='application/pdf')
-    # response['Content-Disposition'] = 'inline; filename="informe.pdf"'
-    #
-    # # Crear PDF con ReportLab
-    # p = canvas.Canvas(response)
-    # p.setFont("Helvetica", 14)
-    # p.drawString(100, 750, "Hola mundo")
-    # p.showPage()
-    # p.save()
-    #
-    # return response
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'inline; filename="informe_rutas.pdf"'
     rutas = Rutas.objects.all()
     conteo_usuarios = Counter(ruta.idUsuario_id for ruta in rutas)
     usuarios = User.objects.all()
-    # usuarios = list(conteo_usuarios.keys())
-    # num_rutas = list(conteo_usuarios.values())
     usuarios_ids = [user.id for user in usuarios]
     usuarios_nombres = [user.username for user in usuarios]
 
     num_rutas = [conteo_usuarios.get(user_id, 0) for user_id in usuarios_ids]
-    # 2. Crear gráfico con matplotlib
-    # plt.figure(figsize=(8, 5))
-    # plt.bar(usuarios, num_rutas, color='skyblue')
-    # plt.xlabel("ID de Usuario")
-    # plt.ylabel("Número de Rutas")
-    # plt.title("Número de Rutas por Usuario")
-    # plt.xticks(usuarios)
-    # plt.tight_layout()
     plt.figure(figsize=(10, 6))
     plt.bar(usuarios_nombres, num_rutas, color='skyblue')
     plt.xlabel("Usuario")
@@ -335,9 +313,6 @@ def obtenerInforme(request):
     plt.close()
     img_buffer.seek(0)
     image = ImageReader(img_buffer)
-
-    # 3. Crear PDF y dibujar el gráfico
-
     pdf = canvas.Canvas(response, pagesize=A4)
     width, height = A4
     pdf.setFont("Helvetica-Bold", 18)
@@ -349,6 +324,14 @@ def obtenerInforme(request):
     pdf.showPage()
     pdf.save()
     return response
+
+
+def grafico_admin(request):
+    datos = []
+    cuentaRutas = Rutas.objects.values('dureza').annotate(count=Count('dureza'))
+    for cuenta in cuentaRutas:
+        datos.append({"name": cuenta['dureza'], "y": cuenta['count']})
+    return JsonResponse(datos, safe=False)
 
 
 def error_404_view(request, exception):

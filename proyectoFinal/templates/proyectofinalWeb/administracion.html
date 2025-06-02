@@ -4,6 +4,58 @@
 
 {% block title %} Inicio {% endblock %}
 
+{% block estilos %}
+    <style>
+        .highcharts-figure,
+        .highcharts-data-table table {
+            min-width: 320px;
+            max-width: 660px;
+            margin: 1em auto;
+        }
+
+        .highcharts-data-table table {
+            font-family: Verdana, sans-serif;
+            border-collapse: collapse;
+            border: 1px solid #ebebeb;
+            margin: 10px auto;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .highcharts-data-table caption {
+            padding: 1em 0;
+            font-size: 1.2em;
+            color: #555;
+        }
+
+        .highcharts-data-table th {
+            font-weight: 600;
+            padding: 0.5em;
+        }
+
+        .highcharts-data-table td,
+        .highcharts-data-table th,
+        .highcharts-data-table caption {
+            padding: 0.5em;
+        }
+
+        .highcharts-data-table thead tr,
+        .highcharts-data-table tbody tr:nth-child(even) {
+            background: #f8f8f8;
+        }
+
+        .highcharts-data-table tr:hover {
+            background: #f1f7ff;
+        }
+
+        .highcharts-description {
+            margin: 0.3rem 10px;
+        }
+
+    </style>
+{% endblock %}
+
 {% block despUsuario %}
     <ul class="navbar-nav ms-auto">
         <li class="nav-item dropdown">
@@ -43,8 +95,11 @@
         <div id="carouselExample" class="carousel slide">
             <div class="carousel-inner">
                 <div class="carousel-item active">
-                    <h1 class="text-center">Configuración de videos y usuarios</h1>
+                    <h1 class="text-center">Administración</h1>
                     <button onclick="abrirInforme()">Generar informe</button>
+                    <figure class="highcharts-figure">
+                        <div id="container"></div>
+                    </figure>
                     <div class="accordion pt-5 pb-5" id="accordionPanelsStayOpenExample">
                         <div class="accordion-item">
                             <h2 class="accordion-header">
@@ -270,7 +325,6 @@
                                                             </li>
                                                         {% else %}
                                                             <li class="page-item">
-                                                                {# Use 'page_playlists' parameter #}
                                                                 <a class="page-link"
                                                                    href="?page_playlists={{ i }}">{{ i }}</a>
                                                             </li>
@@ -279,7 +333,7 @@
 
                                                     {% if todasPlaylist.has_next %}
                                                         <li class="page-item">
-                                                            {# Use 'page_playlists' parameter #}
+
                                                             <a class="page-link"
                                                                href="?page_playlists={{ todasPlaylist.next_page_number }}"
                                                                aria-label="Next">
@@ -313,7 +367,70 @@
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/non-cartesian-zoom.js"></script>
+    <script src="https://code.highcharts.com/modules/mouse-wheel-zoom.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            var resp = await fetch("{% url 'grafico_admin' %}");
+            if (!resp.ok) {
+                throw new Error(`HTTP error! status: ${resp.status}`);
+            }
+            var datosjson = await resp.json();
+            Highcharts.chart('container', {
+                chart: {
+                    type: 'pie'
+                },
+                title: {
+                    text: 'Número de rutas por dificultad'
+                },
+                accessibility: {
+                    announceNewData: {
+                        enabled: true
+                    },
+                    point: {
+                        valueSuffix: 'rutas'
+                    }
+                },
+
+                plotOptions: {
+                    pie: {
+                        borderRadius: 5,
+                        dataLabels: [{
+                            enabled: true,
+                            distance: 15,
+                            format: '{point.name}'
+                        }, {
+                            enabled: true,
+                            distance: '-30%',
+                            filter: {
+                                property: 'percentage',
+                                operator: '>',
+                                value: 5
+                            },
+                            format: '{point.y:.0f}',
+                            style: {
+                                fontSize: '0.9em',
+                                textOutline: 'none'
+                            }
+                        }]
+                    }
+                },
+
+                series: [
+                    {
+                        name: 'Rutas',
+                        colorByPoint: true,
+                        data: datosjson
+                    }
+                ],
+            });
+
+        });
+
         function abrirInforme() {
             window.open("{% url 'obtenerInforme' %}", '_blank');
         }
@@ -391,5 +508,7 @@
                 }
             });
         }
+
+
     </script>
 {% endblock %}

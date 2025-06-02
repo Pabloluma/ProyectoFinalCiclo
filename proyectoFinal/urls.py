@@ -23,6 +23,7 @@ urlpatterns = [
 
     path('comentarios/', views.comentarios, name='comentarios'),
     path('informe/', views.obtenerInforme, name='obtenerInforme'),
+    path('graficaJs/', views.grafico_admin, name='grafico_admin'),
     path('perfil/', views.perfil, name='perfil'),
     path('editarAdmin/', views.editarAdmin, name='editarAdmin'),
 
