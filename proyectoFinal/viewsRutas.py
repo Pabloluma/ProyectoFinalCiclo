@@ -804,13 +804,14 @@ def detalles_ruta(request, id_ruta):
                 'Cadencia': listaGraficos.gr_cadencia,
                 'Temperatura': listaGraficos.gr_temperatura,
             }
+            mapa_interactivo = listaGraficos.mapa_interac
         except:
             return render(request, "proyectofinalWeb/detallesRutas.html",
                           {'rutaSelec': ruta, 'listaComentarios': listaComentarios})
 
         return render(request, "proyectofinalWeb/detallesRutas.html",
                       {'rutaSelec': ruta, 'graficos': listaGraficos, 'listaComentarios': listaComentarios,
-                       "imagenes": graficos})
+                       "imagenes": graficos, "mapa_html": mapa_interactivo})
     except Rutas.DoesNotExist:
         messages.success(request, "La ruta no existe", extra_tags="ruta_error")
 

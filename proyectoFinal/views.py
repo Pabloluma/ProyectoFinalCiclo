@@ -2,6 +2,8 @@ import io
 import json
 import os
 from collections import Counter
+
+from django.core.paginator import Paginator
 from googleapiclient.discovery import build
 
 import humanize
@@ -158,9 +160,14 @@ def administracion(request):
         usuario = get_user_model()
         listaUsuarios = usuario.objects.all()
         listaRutas = Rutas.objects.all()
+        paginador = Paginator(listaRutas, 6)  # Muestra 6 rutas por página
+        numero_pagina = request.GET.get('page')
+        todasRutas = paginador.get_page(numero_pagina)
+
         listaPlaylist = cargarListas_Admin()
         return render(request, 'proyectofinalWeb/administracion.html',
-                      {"usuarios": listaUsuarios, "todasRutas": listaRutas, "todasPlaylist": listaPlaylist})
+                      # {"usuarios": listaUsuarios, "todasRutas": listaRutas, "todasPlaylist": listaPlaylist})
+                      {"usuarios": listaUsuarios, "todasRutas": todasRutas, "todasPlaylist": listaPlaylist})
     else:
         return redirect('index')
 

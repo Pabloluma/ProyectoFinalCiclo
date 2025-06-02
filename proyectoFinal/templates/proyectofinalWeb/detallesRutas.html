@@ -19,7 +19,9 @@
                 </a>
             </div>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                {% if not admin %}
                 <li><a class="dropdown-item" href="{% url 'perfil' %}">Perfil</a></li>
+                {% endif %}
                 {% if admin %}
                     <li><a class="dropdown-item" href={% url 'administracion' %}>Configuración</a></li>
                 {% endif %}
@@ -47,12 +49,10 @@
         <div class="mb-4">
             {% if rutaSelec.tipoFichero == 'F' or rutaSelec.tipoFichero == 'G' %}
                 <h4>Mapa de la Ruta</h4>
-                <div class="ratio ratio-21x9">
-                    <iframe src="{{ MEDIA_URL }}{{ rutaSelec.graficosRuta.mapa_interac.url }}" width="100%"
+                    <iframe src="{{ mapa_html.url }}"
+                            width="100%"
                             height="500px"
                             frameborder="0"></iframe>
-
-                </div>
             {% endif %}
         </div>
         <div class="mb-4">
@@ -102,16 +102,16 @@
                     <li class="list-group-item">{{ comment.comentario }}</li>
                 {% endfor %}
             </ul>
-{#            {% if not request.user.is_anonymous %}#}
-                <form id="comentario-form" action="{% url 'comentarios' %}" method="post" >
-                    {% csrf_token %}
-                    <div class="mb-3">
+            {#            {% if not request.user.is_anonymous %}#}
+            <form id="comentario-form" action="{% url 'comentarios' %}" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
                     <textarea class="form-control" id="comentario" name="texto_comentario" rows="3"
                               placeholder="Escribe tu comentario..."></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Agregar Comentario</button>
-                </form>
-{#            {% endif %}#}
+                </div>
+                <button type="submit" class="btn btn-primary">Agregar Comentario</button>
+            </form>
+            {#            {% endif %}#}
         </div>
     </div>
 

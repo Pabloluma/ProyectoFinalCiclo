@@ -20,15 +20,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-$puccep&!n#b_-6ur938n+k*h)unx*)z)@j1s-378w6m%^j1)4'
+SECRET_KEY = 'django-insecure-$puccep&!n#b_-6ur938n+k*h)unx*)z)@j1s-378w6m%^j1)4'
 #
 # # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = False
-DEBUG = config('DEBUG', default=False, cast=bool)
-SECRET_KEY = config('DJANGO_SECRET_KEY')
+DEBUG = True
+# DEBUG = config('DEBUG', default=False, cast=bool)
+# SECRET_KEY = config('DJANGO_SECRET_KEY')
 
 ALLOWED_HOSTS = ['*']
 
+# Para poder poner Iframe Django
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Application definition
 
@@ -85,26 +87,26 @@ WSGI_APPLICATION = 'ProyectoFinalCiclo.wsgi.application'
 #     }
 # }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'proyecto',
-#         'USER': 'proyectoFinal',
-#         'PASSWORD': 'proyectoFinal',
-#         'HOST':'localhost',
-#         'PORT':'3306',
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
+        'NAME': 'proyecto',
+        'USER': 'proyectoFinal',
+        'PASSWORD': 'proyectoFinal',
+        'HOST':'localhost',
+        'PORT':'3306',
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': config('DB_NAME'),
+#         'USER': config('DB_USER'),
+#         'PASSWORD': config('DB_PASSWORD'),
+#         'HOST': config('DB_HOST'),
+#         'PORT': config('DB_PORT'),
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

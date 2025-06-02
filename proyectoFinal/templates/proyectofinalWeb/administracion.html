@@ -106,26 +106,26 @@
                         </div>
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#collapseRutas" aria-expanded="false"
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseRutas" aria-expanded="true"
                                         aria-controls="collapseRutas">
                                     RUTAS
                                 </button>
                             </h2>
-                            <div id="collapseRutas" class="accordion-collapse collapse">
+                            <div id="collapseRutas" class="accordion-collapse collapse show">
                                 <div class="accordion-body">
                                     <div class="row g-4">
                                         {% for ruta in todasRutas %}
                                             <div class="col-lg-4 col-md-6 col-12 d-flex">
                                                 <div class="card flex-fill shadow-sm">
                                                     <div class="card-body">
-                                                    {% if ruta.tipoFichero != 'M' %}
-                                                        <div class="ratio ratio-4x3 mb-3">
-                                                            <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}"
-                                                                 class="img-fluid rounded object-fit-contain"
-                                                                 alt="Mapa de ruta">
-                                                        </div>
-                                                    {% endif %}
+                                                        {% if ruta.tipoFichero != 'M' %}
+                                                            <div class="ratio ratio-4x3 mb-3">
+                                                                <img src="{{ MEDIA_URL }}{{ ruta.imagen.url }}"
+                                                                     class="img-fluid rounded object-fit-contain"
+                                                                     alt="Mapa de ruta">
+                                                            </div>
+                                                        {% endif %}
                                                         <p class="fs-5 fw-bold mb-1">{{ ruta.titulo }}</p>
                                                         <p class="mb-1">Distancia: {{ ruta.distancia }} km</p>
                                                         <p class="mb-1">
@@ -154,6 +154,51 @@
                                             </div>
                                         {% endfor %}
                                     </div>
+                                    {% if todasRutas.has_other_pages %}
+                                        <nav aria-label="Page navigation" class="mt-4">
+                                            <ul class="pagination justify-content-center">
+                                                {% if todasRutas.has_previous %}
+                                                    <li class="page-item">
+                                                        <a class="page-link"
+                                                           href="?page={{ todasRutas.previous_page_number }}"
+                                                           aria-label="Previous">
+                                                            <span aria-hidden="true">«</span>
+                                                        </a>
+                                                    </li>
+                                                {% else %}
+                                                    <li class="page-item disabled">
+                                                        <span class="page-link">«</span>
+                                                    </li>
+                                                {% endif %}
+
+                                                {% for i in todasRutas.paginator.page_range %}
+                                                    {% if todasRutas.number == i %}
+                                                        <li class="page-item active" aria-current="page">
+                                                            <span class="page-link">{{ i }}</span>
+                                                        </li>
+                                                    {% else %}
+                                                        <li class="page-item">
+                                                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                                        </li>
+                                                    {% endif %}
+                                                {% endfor %}
+
+                                                {% if todasRutas.has_next %}
+                                                    <li class="page-item">
+                                                        <a class="page-link"
+                                                           href="?page={{ todasRutas.next_page_number }}"
+                                                           aria-label="Next">
+                                                            <span aria-hidden="true">»</span>
+                                                        </a>
+                                                    </li>
+                                                {% else %}
+                                                    <li class="page-item disabled">
+                                                        <span class="page-link">»</span>
+                                                    </li>
+                                                {% endif %}
+                                            </ul>
+                                        </nav>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -273,11 +318,9 @@
 
                     try {
                         const url = new URL(value);
-
                         if (!url.hostname === "www.youtube.com" || !url.pathname === "/playlist" || !url.searchParams.has("list")) {
                             return 'La URL debe ser una playlist válida de YouTube.';
                         }
-
                         return null;
 
                     } catch (_) {
