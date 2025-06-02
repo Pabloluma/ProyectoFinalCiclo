@@ -204,13 +204,13 @@
                         </div>
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#collapseVideos" aria-expanded="false"
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseVideos" aria-expanded="true"
                                         aria-controls="collapseVideos">
                                     VIDEOS
                                 </button>
                             </h2>
-                            <div id="collapseVideos" class="accordion-collapse collapse">
+                            <div id="collapseVideos" class="accordion-collapse collapse show">
                                 <div class="accordion-body">
                                     <div class="d-flex justify-content-end mb-3">
                                         <button class="btn btn-success" onclick="agregarPlaylist()">Añadir Playlist
@@ -246,6 +246,54 @@
                                                 </div>
                                             {% endfor %}
                                         </div>
+                                        {% if todasPlaylist.has_other_pages %}
+                                            <nav aria-label="Page navigation for Playlists" class="mt-4">
+                                                <ul class="pagination justify-content-center">
+                                                    {% if todasPlaylist.has_previous %}
+                                                        <li class="page-item">
+                                                            <a class="page-link"
+                                                               href="?page_playlists={{ todasPlaylist.previous_page_number }}"
+                                                               aria-label="Previous">
+                                                                <span aria-hidden="true">«</span>
+                                                            </a>
+                                                        </li>
+                                                    {% else %}
+                                                        <li class="page-item disabled">
+                                                            <span class="page-link">«</span>
+                                                        </li>
+                                                    {% endif %}
+
+                                                    {% for i in todasPlaylist.paginator.page_range %}
+                                                        {% if todasPlaylist.number == i %}
+                                                            <li class="page-item active" aria-current="page">
+                                                                <span class="page-link">{{ i }}</span>
+                                                            </li>
+                                                        {% else %}
+                                                            <li class="page-item">
+                                                                {# Use 'page_playlists' parameter #}
+                                                                <a class="page-link"
+                                                                   href="?page_playlists={{ i }}">{{ i }}</a>
+                                                            </li>
+                                                        {% endif %}
+                                                    {% endfor %}
+
+                                                    {% if todasPlaylist.has_next %}
+                                                        <li class="page-item">
+                                                            {# Use 'page_playlists' parameter #}
+                                                            <a class="page-link"
+                                                               href="?page_playlists={{ todasPlaylist.next_page_number }}"
+                                                               aria-label="Next">
+                                                                <span aria-hidden="true">»</span>
+                                                            </a>
+                                                        </li>
+                                                    {% else %}
+                                                        <li class="page-item disabled">
+                                                            <span class="page-link">»</span>
+                                                        </li>
+                                                    {% endif %}
+                                                </ul>
+                                            </nav>
+                                        {% endif %}
                                     {% else %}
                                         <p class="text-muted">No hay videos disponibles.</p>
                                     {% endif %}

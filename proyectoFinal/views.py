@@ -165,9 +165,12 @@ def administracion(request):
         todasRutas = paginador.get_page(numero_pagina)
 
         listaPlaylist = cargarListas_Admin()
+        paginador_listas = Paginator(listaPlaylist, 3)
+        numero_pagina_playlists = request.GET.get('page_playlists')
+        todasPlaylist = paginador_listas.get_page(numero_pagina_playlists)
         return render(request, 'proyectofinalWeb/administracion.html',
                       # {"usuarios": listaUsuarios, "todasRutas": listaRutas, "todasPlaylist": listaPlaylist})
-                      {"usuarios": listaUsuarios, "todasRutas": todasRutas, "todasPlaylist": listaPlaylist})
+                      {"usuarios": listaUsuarios, "todasRutas": todasRutas, "todasPlaylist": todasPlaylist})
     else:
         return redirect('index')
 
