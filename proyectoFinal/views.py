@@ -2,6 +2,7 @@ import io
 import json
 import os
 from collections import Counter
+from datetime import date, datetime
 
 from django.core.paginator import Paginator
 from django.db.models import Count
@@ -72,6 +73,7 @@ def acceso(request):
     if request.method == "POST":
         botonEnv = request.POST.get("enviar")
         if botonEnv == "reg":
+            fecha = request.POST.get("fechaNac")
             email = request.POST.get("email")
             nombre = request.POST.get("nombre")
             apellidos = request.POST.get("apellidos")
@@ -84,7 +86,15 @@ def acceso(request):
                                                            last_name=apellidos)
                     usuario_reg.save()
 
-                    carac = caracteristicas.objects.create(tipo_bici=1, estado=0, suelo=1, usuario_id=usuario_reg)
+                    hoy = date.today()
+                    fechaFormateada = datetime.strptime(fecha, '%Y-%m-%d').date()
+
+                    edad = hoy.year - fechaFormateada.year
+                    if (hoy.month, hoy.day) < (fechaFormateada.month, fechaFormateada.day):
+                        edad -= 1
+
+                    carac = caracteristicas.objects.create(tipo_bici=1, estado=0, suelo=1, fechaNacimiento=fecha,
+                                                           edad=edad, peso=50, estatura=1.60, usuario_id=usuario_reg)
                     carac.save()
                     messages.error(request, "Se ha registrado correctamente",
                                    extra_tags="registro_valido")
@@ -259,21 +269,56 @@ def actualizar_usuario(request):
         try:
             data = json.loads(request.body)
             valorSelec = data.get('valor')
-            ruta_json = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\diccionarios.json')
-            with open(ruta_json, 'r') as f:
-                datos_json = json.load(f)
+            claveSelec = data.get('seleccionado')
+            usuarioId = data.get("usuario_id")
+            caracteristicasUsuario = caracteristicas.objects.get(usuario_id_id=int(usuarioId))
+            if claveSelec.startswith('Forma') or claveSelec.startswith("Tipo") or claveSelec.startswith("Terreno"):
+                ruta_json = os.path.join(settings.BASE_DIR, 'proyectoFinal', 'static\\ficheros\diccionarios.json')
+                with open(ruta_json, 'r') as f:
+                    datos_json = json.load(f)
 
-            for clave_principal, subdiccionario in datos_json.items():
-                if isinstance(subdiccionario, dict):
-                    if valorSelec in subdiccionario.values():
-                        clave_json = clave_principal
-                        elem_subjson = datos_json.get(clave_json)
+                for clave_principal, subdiccionario in datos_json.items():
+                    if isinstance(subdiccionario, dict):
+                        if valorSelec in subdiccionario.values():
+                            clave_json = clave_principal
+                            elem_subjson = datos_json.get(clave_json)
 
-            if elem_subjson and isinstance(elem_subjson, dict):
-                for clave, valor in elem_subjson.items():
-                    if valor == valorSelec:
-                        print(f"Clave: {clave}")
-                        return JsonResponse({'success': True, 'clave': clave})
+                if elem_subjson and isinstance(elem_subjson, dict):
+                    for clave, valor in elem_subjson.items():
+                        if valor == valorSelec:
+                            if claveSelec.startswith("Forma"):
+                                caracteristicasUsuario.estado = clave
+                                caracteristicasUsuario.save()
+                            elif claveSelec.startswith("Terreno"):
+                                caracteristicasUsuario.suelo = clave
+                                caracteristicasUsuario.save()
+                            elif claveSelec.startswith("Tipo"):
+                                caracteristicasUsuario.tipo_bici = clave
+                                caracteristicasUsuario.save()
+                            print(f"Clave: {clave}")
+                            return JsonResponse({'success': True, 'clave': clave})
+            elif claveSelec.startswith("Peso"):
+                caracteristicasUsuario.peso = float(valorSelec)
+                caracteristicasUsuario.save()
+                return JsonResponse({'success': True, 'clave': valorSelec})
+            elif claveSelec.startswith("Apell"):
+                usuario = User.objects.get(id=int(usuarioId))
+                usuario.last_name = valorSelec
+                usuario.save()
+                return JsonResponse({'success': True, 'clave': valorSelec})
+            elif claveSelec == "Nombre:":
+                usuario = User.objects.get(id=int(usuarioId))
+                usuario.first_name = valorSelec
+                usuario.save()
+                return JsonResponse({'success': True, 'clave': valorSelec})
+            elif "de usuario" in claveSelec:
+                try:
+                    usuario = User.objects.get(id=int(usuarioId))
+                    usuario.username = valorSelec
+                    usuario.save()
+                    return JsonResponse({'success': True, 'clave': valorSelec})
+                except:
+                    return JsonResponse({'success': False})
         except json.JSONDecodeError:
             error_message = "JSON no válido"
             print(f"Error: {error_message}")

@@ -107,6 +107,14 @@
                             </div>
                         </div>
                         <div class="mb-3">
+                            <input type="date" class="form-control" id="InpRegFecha" placeholder="Fecha de nacimiento"
+                                   name="fechaNac"
+                                   required/>
+                            <div class="invalid-feedback">
+                                La fecha no está rellena
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <input type="password" class="form-control" id="InpRegPassword" placeholder="Contraseña"
                                    name="password"
                                    required/>
@@ -145,9 +153,6 @@
                         </div>
                         <input type="hidden" name="enviar" value="recPass">
                         <div class="mb-3">
-                            {#                            <button class="btn btn-success container-fluid mt-3" name="enviar" value="recPass"#}
-                            {#                                    type="submit">Enviar#}
-                            {#                            </button>#}
                             <button class="btn btn-success container-fluid mt-3" type="submit">Enviar
                             </button>
                         </div>
@@ -195,7 +200,23 @@
                 }
 
                 let password = document.getElementById("InpRegPassword").value;
-                const repPassword = document.getElementById("InpRegPasswordDup").value;
+                let repPassword = document.getElementById("InpRegPasswordDup").value;
+                let fechaInp = document.getElementById("InpRegFecha").value
+                let fechaActual = new Date()
+                if (fechaInp != null) {
+                    let fechaIng = new Date(fechaInp)
+                    if (fechaIng > fechaActual) {
+                        event.preventDefault();
+                        fechaInp.reportValidity()
+                        Swal.fire({
+                            text: 'No puedes poner fechas futuras',
+                            icon: 'error',
+                            confirmButtonText: 'Cool'
+                        })
+                    } else {
+                        document.getElementById("InpRegFecha").setCustomValidity("");
+                    }
+                }
 
                 if (password !== repPassword) {
                     const passwdRep = document.getElementById("InpRegPasswordDup");
