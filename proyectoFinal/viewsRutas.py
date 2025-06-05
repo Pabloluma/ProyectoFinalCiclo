@@ -847,7 +847,7 @@ def eliminarRuta(request):
 def eliminarVideo(request):
     if request.method == "POST":
         id_lista = request.POST.get('id_video_eliminar')
-        lista_eliminar = lista.objects.get(pk=id_lista)
+        lista_eliminar = lista.objects.get(nombre=id_lista)
         lista_eliminar.delete()
         messages.success(request, f"La lista se ha eliminado correctamente", extra_tags="eliminar_lista")
         return redirect('misRutas')
