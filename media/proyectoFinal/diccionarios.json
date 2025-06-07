@@ -1,0 +1,20 @@
+{
+    "dic_dificultad": {
+        "0": "alta",
+        "1": "media",
+        "2": "baja"
+    },
+    "dic_estado": {
+        "0": "principiante",
+        "1": "avanzado",
+        "2": "intermedio"
+    },
+    "dic_bici": {
+        "0": "gravel",
+        "1": "carretera"
+    },
+    "dic_suelo": {
+        "0": "pista",
+        "1": "asfalto"
+    }
+}
